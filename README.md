@@ -35,4 +35,5 @@ Plan de implementare
 - Faza 1 - Realizare skeleton backend, definire modele date, documentatie Stage 1
 - Faza 2 - Implementare API REST complet + interfata grafica minima
 - Faza 3 - Finalizare frontend SPA + integrare cu backend, demo local
-- Faza 4 - Implementare functionalitati optionale si deploy, demo final
+- Faza 4 - Implementare functionalitati optionale si deploy, demo final.
+
