@@ -1,0 +1,310 @@
+/* =========================================
+   1. VARIABILE DE CULOARE & RESET
+   ========================================= */
+:root {
+    /* Paleta Buburuza Tech */
+    --primary-blue: #0f172a;       /* Navy închis (Navigatie) */
+    --accent-blue: #2563eb;        /* Albastru electric (Butoane) */
+    --ladybug-red: #e11d48;        /* Roșu zmeură (Accente, Erori) */
+    --bg-color: #f1f5f9;           /* Gri foarte deschis (Fundal) */
+    --card-bg: #ffffff;            /* Alb (Carduri) */
+    --text-dark: #334155;          /* Text principal */
+    --text-light: #64748b;         /* Text secundar */
+    
+    /* Severitate Bug-uri */
+    --sev-low: #22c55e;            /* Verde */
+    --sev-medium: #f59e0b;         /* Portocaliu */
+    --sev-critical: #e11d48;       /* Roșu */
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-dark);
+    line-height: 1.6;
+}
+
+/* =========================================
+   2. NAVBAR (Meniul de Sus)
+   ========================================= */
+.navbar {
+    background-color: var(--primary-blue);
+    color: white;
+    padding: 0.8rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.logo-img {
+    height: 45px; /* Dimensiune fixă pentru logo */
+    width: auto;
+    filter: drop-shadow(0 0 5px rgba(255,255,255,0.2));
+}
+
+.nav-brand h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.highlight {
+    color: var(--ladybug-red); /* Cuvântul "Tracker" e roșu */
+}
+
+.user-panel {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 0.9rem;
+}
+
+/* =========================================
+   3. STRUCTURA & UTILITARE
+   ========================================= */
+.container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 20px;
+    min-height: 80vh;
+}
+
+/* Butoane Generale */
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.btn:active { transform: scale(0.98); }
+
+.btn-primary {
+    background-color: var(--accent-blue);
+    color: white;
+}
+.btn-primary:hover { background-color: #1d4ed8; }
+
+.btn-secondary {
+    background-color: var(--primary-blue);
+    color: white;
+}
+
+.btn-warning {
+    background-color: #f59e0b;
+    color: white;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white;
+}
+.btn-outline:hover { background: rgba(255,255,255,0.1); }
+
+/* Formulare (Inputs) */
+input, select {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-family: inherit;
+    outline: none;
+}
+input:focus, select:focus {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* =========================================
+   4. ECRAN LOGIN (Centrat)
+   ========================================= */
+#login-view {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 70vh;
+}
+
+.login-card {
+    background: var(--card-bg);
+    padding: 3rem;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    border-top: 5px solid var(--ladybug-red); /* Linia roșie sus */
+}
+
+.login-logo {
+    width: 80px;
+    margin-bottom: 1rem;
+}
+
+.login-header h2 { margin-bottom: 0.5rem; color: var(--primary-blue); }
+.login-header p { color: var(--text-light); margin-bottom: 2rem; }
+
+.btn-block { width: 100%; margin-top: 1rem; font-size: 1rem; }
+.demo-info { margin-top: 20px; color: var(--text-light); font-size: 0.85rem; }
+
+/* =========================================
+   5. DASHBOARD PROIECTE
+   ========================================= */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+#mp-actions {
+    display: flex;
+    gap: 10px;
+}
+.input-small { width: 200px; margin: 0; }
+
+/* Grid Carduri */
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.project-card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    border: 1px solid #e2e8f0;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+}
+
+.project-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+    border-color: var(--accent-blue);
+}
+
+.project-card h3 { color: var(--primary-blue); margin-bottom: 5px; }
+.project-card small { color: var(--text-light); display: block; margin-bottom: 15px; word-break: break-all;}
+
+/* =========================================
+   6. PAGINA DE BUG-URI
+   ========================================= */
+.project-header-banner {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    border-left: 5px solid var(--primary-blue);
+}
+
+.btn-back {
+    background: none;
+    border: none;
+    color: var(--text-light);
+    cursor: pointer;
+    margin-bottom: 15px;
+    display: inline-block;
+    font-weight: 600;
+}
+.btn-back:hover { color: var(--primary-blue); text-decoration: underline; }
+
+/* Formular Adaugare Bug */
+.bug-form-card {
+    background: #fff0f0; /* Roșu foarte pal */
+    border: 1px solid #fecaca;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+}
+.bug-form-card h3 { color: var(--ladybug-red); margin-bottom: 15px; }
+.form-row { display: flex; gap: 10px; }
+
+/* Lista Bug-uri */
+.bug-list-styled { list-style: none; }
+
+.bug-item {
+    background: white;
+    margin-bottom: 15px;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    border-left: 6px solid #ccc; /* Default border */
+    position: relative;
+}
+
+/* Borduri colorate pe stânga în funcție de severitate */
+.bug-low { border-left-color: var(--sev-low); }
+.bug-medium { border-left-color: var(--sev-medium); }
+.bug-critical { border-left-color: var(--sev-critical); background-color: #fffafa; }
+
+.bug-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.status-badge {
+    font-size: 0.75rem;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: #e2e8f0;
+    color: var(--text-dark);
+    text-transform: uppercase;
+}
+
+.bug-meta {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    display: flex;
+    gap: 15px;
+    margin-bottom: 10px;
+}
+
+.bug-actions {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #f1f5f9;
+    text-align: right;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .form-row { flex-direction: column; }
+    .section-header { flex-direction: column; align-items: flex-start; }
+    #mp-actions { flex-direction: column; width: 100%; }
+    .input-small { width: 100%; }
+}
