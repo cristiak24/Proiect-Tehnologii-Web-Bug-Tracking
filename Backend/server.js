@@ -1,7 +1,11 @@
 const express = require('express');
-const { Sequelize, DataTypes, Op } = require('sequelize'); // Am adaugat Op pentru Search
 const cors = require('cors');
-const path = require('path');
+
+// 1. IMPORTĂM CE AM MUTAT ÎN ALTE FIȘIERE
+// Aici aducem modelele și funcția de start a bazei de date
+const { initDB, User, Project, ProjectMember, Bug, Op } = require('./database');
+// Aici aducem logica pentru Login/Register
+const AuthController = require('./AuthController');
 
 const app = express();
 const PORT = 3000;
@@ -9,87 +13,36 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
-// --- 1. DB CONFIG ---
-const sequelize = new Sequelize({
-    dialect: 'sqlite',
-    storage: './bugtracker.db',
-    logging: false
-});
-
-// --- 2. MODELE ---
-const User = sequelize.define('User', {
-    email: { type: DataTypes.STRING, unique: true, allowNull: false },
-    password: { type: DataTypes.STRING, allowNull: false },
-    name: { type: DataTypes.STRING, defaultValue: 'Student' } // Nume afisat
-});
-
-const Project = sequelize.define('Project', {
-    name: { type: DataTypes.STRING, allowNull: false },
-    repository: { type: DataTypes.STRING },
-    owner_id: { type: DataTypes.INTEGER },
-    join_code: { type: DataTypes.STRING, unique: true }
-});
-
-const ProjectMember = sequelize.define('ProjectMember', {
-    project_id: { type: DataTypes.INTEGER },
-    user_id: { type: DataTypes.INTEGER },
-    role: { type: DataTypes.STRING }
-});
-
-// Relații (pentru interogări ușoare)
-Project.hasMany(ProjectMember, { foreignKey: 'project_id' });
-ProjectMember.belongsTo(User, { foreignKey: 'user_id' });
-
-// --- 3. HELPER ---
-const generateCode = () => Math.random().toString(36).substring(2, 8).toUpperCase();
-
-// --- 4. INIT ---
-async function initDB() {
-    try {
-        await sequelize.sync(); 
-        console.log(">> DB Sincronizată.");
-    } catch (err) { console.error(err); }
-}
+// 2. PORNIM BAZA DE DATE (Funcția e importată din database.js)
 initDB();
 
-// --- 5. RUTE API ---
+// --- 3. HELPER ---
+// Păstrăm funcția asta aici pentru că e folosită la crearea proiectelor
+const generateCode = () => Math.random().toString(36).substring(2, 8).toUpperCase();
 
-// AUTH
-app.post('/api/login', async (req, res) => {
-    try {
-        const { email, password } = req.body;
-        const user = await User.findOne({ where: { email, password } });
-        if (!user) return res.status(401).json({ error: "Date incorecte." });
-        res.json({ message: "OK", user });
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
+// --- 4. RUTELE API ---
 
-app.post('/api/register', async (req, res) => {
-    try {
-        const user = await User.create(req.body);
-        res.json({ message: "Cont creat!", userId: user.id });
-    } catch (err) { res.status(400).json({ error: "Eroare creare." }); }
-});
+// AUTH (Folosim Controller-ul nou -> mult mai curat!)
+app.post('/api/register', AuthController.register);
+app.post('/api/login', AuthController.login);
 
-// PROIECTE
+// PROIECTE (Logica rămâne aici momentan, dar folosim modelele importate)
 app.get('/api/projects', async (req, res) => {
     try {
-        // Returnăm proiectele cu tot cu membri
         const projects = await Project.findAll({
             include: [{ 
                 model: ProjectMember,
-                include: [User] // Să vedem și numele membrilor
+                include: [User]
             }]
         });
         res.json(projects);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// CREARE PROIECT (Automate MP + Join Code)
 app.post('/api/projects', async (req, res) => {
     try {
         const { name, repository, owner_id } = req.body;
-        const code = generateCode();
+        const code = generateCode(); // Folosim funcția de mai sus
         
         const project = await Project.create({ name, repository, owner_id, join_code: code });
         await ProjectMember.create({ project_id: project.id, user_id: owner_id, role: 'MP' });
@@ -109,15 +62,13 @@ app.post('/api/projects/join-code', async (req, res) => {
         const existing = await ProjectMember.findOne({ where: { project_id: project.id, user_id: userId } });
         if (existing) return res.status(400).json({ error: "Ești deja membru." });
 
-        // Cine intră cu cod devine MP (sau poți schimba în TST dacă preferi)
-        // De obicei codul e dat colegilor de echipă (MP). Testerii dau Join din feed.
         await ProjectMember.create({ project_id: project.id, user_id: userId, role: 'MP' });
         
         res.json({ message: "Te-ai alăturat echipei!", project });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// JOIN DIN FEED (Tester)
+// JOIN DIN FEED
 app.post('/api/projects/:id/join', async (req, res) => {
     try {
         const { userId } = req.body;
@@ -129,9 +80,9 @@ app.post('/api/projects/:id/join', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// SEARCH (Căutare Useri sau Proiecte)
+// SEARCH (Acum 'Op' vine importat din database.js)
 app.get('/api/search', async (req, res) => {
-    const query = req.query.q; // Ce scrie în search bar
+    const query = req.query.q;
     if(!query) return res.json({ users: [], projects: [] });
 
     try {
@@ -142,6 +93,28 @@ app.get('/api/search', async (req, res) => {
             where: { name: { [Op.like]: `%${query}%` } }
         });
         res.json({ users, projects });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// BUG ROUTES (Necesare pentru Dashboard)
+app.get('/api/projects/:id/bugs', async (req, res) => {
+    try {
+        const bugs = await Bug.findAll({ where: { project_id: req.params.id } });
+        res.json(bugs);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/bugs', async (req, res) => {
+    try {
+        const bug = await Bug.create(req.body);
+        res.json(bug);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.put('/api/bugs/:id', async (req, res) => {
+    try {
+        await Bug.update(req.body, { where: { id: req.params.id } });
+        res.json({ message: "Updated" });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 

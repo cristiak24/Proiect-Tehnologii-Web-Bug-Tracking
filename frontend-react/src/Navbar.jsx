@@ -1,17 +1,15 @@
 import { useState } from 'react';
 
-function Navbar({ user, onLogout, onSearch }) {
-    const [searchTerm, setSearchTerm] = useState('');
-
+function Navbar({ user, onLogout, onSearch, onLogoClick }) {
+    
     const handleSearch = (e) => {
-        const val = e.target.value;
-        setSearchTerm(val);
-        onSearch(val); // Trimitem textul în sus către App/Dashboard
+        onSearch(e.target.value);
     };
 
     return (
         <nav className="navbar">
-            <div className="nav-brand">
+            {/* LOGO CLICKABIL (Home) */}
+            <div className="nav-brand" onClick={onLogoClick} style={{cursor: 'pointer'}}>
                 <img src="/logo.png" alt="Logo" className="logo-img" style={{height: '35px'}}/>
                 <h1 style={{fontSize: '1.2rem', margin:0}}>LadyBug <span className="highlight">Tracker</span></h1>
             </div>
@@ -20,20 +18,21 @@ function Navbar({ user, onLogout, onSearch }) {
             <div className="search-container">
                 <input 
                     type="text" 
-                    placeholder="🔍 Caută proiecte sau colegi..." 
-                    value={searchTerm}
+                    placeholder="🔍 Caută proiecte..." 
                     onChange={handleSearch}
                     className="search-input"
                 />
             </div>
 
-            {/* USER PROFILE AREA */}
+            {/* USER INFO SIMPLIFICAT (Doar Nume) */}
             <div className="user-panel">
                 <div className="user-info">
-                    <span className="user-name">{user.email}</span>
-                    <small>Student</small>
+                    {/* Afișăm Numele. Dacă nu are nume setat, afișăm partea dinainte de @ din email */}
+                    <span className="user-name" style={{fontSize: '1rem'}}>
+                        Salut, {user.name || user.email.split('@')[0]} 👋
+                    </span>
                 </div>
-                <button onClick={onLogout} className="btn-logout">Deconectare</button>
+                <button onClick={onLogout} className="btn-logout">Ieșire</button>
             </div>
         </nav>
     );
