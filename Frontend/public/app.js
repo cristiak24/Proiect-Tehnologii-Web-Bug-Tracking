@@ -42,6 +42,50 @@ async function login() {
     }
 }
 
+// Arată register
+function showRegister() {
+    document.querySelectorAll('.view-section').forEach(el => el.style.display = 'none');
+    document.getElementById('register-view').style.display = 'block';
+}
+
+// Arată login
+function showLogin() {
+    document.querySelectorAll('.view-section').forEach(el => el.style.display = 'none');
+    document.getElementById('login-view').style.display = 'block';
+}
+
+// Înregistrare efectivă
+async function register() {
+    const name = document.getElementById('register-name').value.trim();
+    const email = document.getElementById('register-email').value.trim();
+    const password = document.getElementById('register-password').value;
+
+    if (!name || !email || !password) {
+        return alert("Completează toate câmpurile!");
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            alert("Cont creat cu succes! Poți face login acum.");
+            showLogin(); // întoarcere la login
+        } else {
+            alert("Eroare: " + data.error);
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Nu s-a putut conecta la server.");
+    }
+}
+
+
 function logout() {
     currentUser = null;
     location.reload(); // Reîmprospătare pagină pentru a ieși
@@ -110,6 +154,12 @@ async function loadProjects() {
     const myContainer = document.getElementById('my-projects-list');
     const feedContainer = document.getElementById('public-feed-list');
     
+    document.getElementById('btn-back-dashboard').addEventListener('click', () => {
+        currentProjectId = null; // resetăm proiectul curent
+        showDashboard();          // ascunde project-view și arată dashboard
+    });
+    
+
     // Mesaje de încărcare
     myContainer.innerHTML = '<p>Se încarcă...</p>';
     feedContainer.innerHTML = '<p>Căutăm proiecte publice...</p>';
@@ -152,12 +202,20 @@ async function loadProjects() {
                 hasFeedProjects = true;
                 const card = document.createElement('div');
                 card.className = 'project-card feed-project';
+                card.style.cursor = 'pointer'; // arată că e clickabil
+
                 card.innerHTML = `
                     <h3>${p.name}</h3>
                     <p>Owner ID: ${p.owner_id}</p>
-                    <button onclick="joinAsTesterFromFeed(${p.id})" class="btn btn-outline full-width">Devino Tester (Join)</button>
-                `;
+                    <p class="click-hint">Click oriunde pe card pentru a deveni Tester</p>`;
+
+                // facem tot cardul clickabil
+                card.addEventListener('click', () => {
+                joinAsTesterFromFeed(p.id);
+            });
+
                 feedContainer.appendChild(card);
+
             }
         });
 
