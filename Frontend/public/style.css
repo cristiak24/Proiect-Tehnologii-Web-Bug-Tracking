@@ -308,3 +308,91 @@ input:focus, select:focus {
     #mp-actions { flex-direction: column; width: 100%; }
     .input-small { width: 100%; }
 }
+
+
+/* --- STILURI NOI PENTRU DASHBOARD RESPONSIV --- */
+
+.actions-bar {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap; /* Permite elementelor să cadă pe rândul următor pe mobil */
+    margin-bottom: 30px;
+}
+
+.action-card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    flex: 1; /* Ocupă spațiu egal */
+    min-width: 300px; /* Nu se face mai mic de 300px */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.input-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.full-width {
+    width: 100%;
+    margin-top: 10px;
+}
+
+.badge {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: white;
+}
+.badge-mp { background-color: var(--primary-blue); }
+.badge-tst { background-color: var(--sev-medium); }
+
+.join-code {
+    background: #f1f5f9;
+    padding: 5px;
+    border-radius: 4px;
+    font-family: monospace;
+    margin: 10px 0;
+    color: var(--ladybug-red);
+}
+
+.divider {
+    border: 0;
+    height: 1px;
+    background: #e2e8f0;
+    margin: 30px 0;
+}
+
+.section-title {
+    color: var(--primary-blue);
+    margin-bottom: 20px;
+    border-left: 5px solid var(--ladybug-red);
+    padding-left: 10px;
+}
+
+/* --- RESPONSIVENESS (Magia pentru Telefon) --- */
+@media (max-width: 768px) {
+    .navbar {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+    
+    .actions-bar {
+        flex-direction: column;
+    }
+    
+    .input-group {
+        flex-direction: column;
+    }
+    
+    .grid-container {
+        grid-template-columns: 1fr; /* O singură coloană pe mobil */
+    }
+
+    .project-card {
+        margin-bottom: 15px;
+    }
+}

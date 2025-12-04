@@ -100,17 +100,139 @@ async function loadProjects() {
     }
 }
 
-// Funcție nouă: Adăugare Proiect (Dacă backend-ul o suportă)
+// ... (Codul de Login ramane la fel) ...
+
+// ===============================
+// 2. DASHBOARD (LOGICĂ AVANSATĂ)
+// ===============================
+
+async function loadProjects() {
+    const myContainer = document.getElementById('my-projects-list');
+    const feedContainer = document.getElementById('public-feed-list');
+    
+    // Mesaje de încărcare
+    myContainer.innerHTML = '<p>Se încarcă...</p>';
+    feedContainer.innerHTML = '<p>Căutăm proiecte publice...</p>';
+
+    try {
+        const response = await fetch(`${API_URL}/projects`);
+        const projects = await response.json();
+
+        // Golim containerele
+        myContainer.innerHTML = '';
+        feedContainer.innerHTML = '';
+
+        let hasMyProjects = false;
+        let hasFeedProjects = false;
+
+        projects.forEach(p => {
+            // Verificăm dacă userul curent este membru în acest proiect
+            // (Backend-ul ne trimite array-ul 'members' la fiecare proiect)
+            const isMember = p.members.some(m => m.user_id === currentUser.id);
+            const myRoleData = p.members.find(m => m.user_id === currentUser.id);
+            const myRole = myRoleData ? myRoleData.role : null;
+
+            if (isMember) {
+                // --> PROIECTELE MELE
+                hasMyProjects = true;
+                const card = document.createElement('div');
+                card.className = 'project-card my-project'; // Clasă specială
+                card.innerHTML = `
+                    <div class="card-header">
+                        <h3>${p.name}</h3>
+                        <span class="badge ${myRole === 'MP' ? 'badge-mp' : 'badge-tst'}">${myRole}</span>
+                    </div>
+                    <p class="repo-link">Repo: ${p.repository}</p>
+                    ${myRole === 'MP' ? `<p class="join-code">🔑 Cod Join: <strong>${p.join_code}</strong></p>` : ''}
+                    <button onclick="openProject(${p.id}, '${p.name}')" class="btn btn-primary full-width">Deschide</button>
+                `;
+                myContainer.appendChild(card);
+            } else {
+                // --> FEED PUBLIC (Pot da Join ca Tester)
+                hasFeedProjects = true;
+                const card = document.createElement('div');
+                card.className = 'project-card feed-project';
+                card.innerHTML = `
+                    <h3>${p.name}</h3>
+                    <p>Owner ID: ${p.owner_id}</p>
+                    <button onclick="joinAsTesterFromFeed(${p.id})" class="btn btn-outline full-width">Devino Tester (Join)</button>
+                `;
+                feedContainer.appendChild(card);
+            }
+        });
+
+        if (!hasMyProjects) myContainer.innerHTML = '<p class="empty-msg">Nu ești în niciun proiect încă.</p>';
+        if (!hasFeedProjects) feedContainer.innerHTML = '<p class="empty-msg">Nu există alte proiecte publice.</p>';
+
+    } catch (err) {
+        console.error(err);
+        alert("Eroare la încărcarea proiectelor.");
+    }
+}
+
+// FUNCȚIE NOUĂ: Join cu Cod (MP)
+async function joinByCode() {
+    const code = document.getElementById('join-code-input').value.trim();
+    if (!code) return alert("Introdu un cod!");
+
+    try {
+        const response = await fetch(`${API_URL}/projects/join-code`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: currentUser.id, code: code })
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+            alert(`Succes! Te-ai alăturat proiectului "${data.projectName}" ca MP.`);
+            document.getElementById('join-code-input').value = '';
+            loadProjects(); // Reîmprospătăm listele
+        } else {
+            alert("Eroare: " + data.error);
+        }
+    } catch (err) { alert("Eroare server."); }
+}
+
+// FUNCȚIE NOUĂ: Join ca Tester (Din Feed)
+async function joinAsTesterFromFeed(projectId) {
+    if(!confirm("Vrei să te alături ca Tester la acest proiect?")) return;
+
+    try {
+        const response = await fetch(`${API_URL}/projects/${projectId}/join`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: currentUser.id })
+        });
+        
+        if (response.ok) {
+            alert("Te-ai alăturat! Proiectul s-a mutat la 'Proiectele Mele'.");
+            loadProjects();
+        } else {
+            const data = await response.json();
+            alert(data.error);
+        }
+    } catch (err) { alert("Eroare server."); }
+}
+
+// Funcția addProject actualizată pentru a goli input-urile corect
 async function addProject() {
     const name = document.getElementById('new-project-name').value;
     const repo = document.getElementById('new-project-repo').value;
+    
+    if(!name) return alert("Numele este obligatoriu");
 
-    if (!name || !repo) return alert("Completează numele și repo-ul!");
-
-    // Notă: Trebuie să ne asigurăm că avem ruta POST /api/projects în server.js
-    // Dacă nu o avem, o vom adăuga imediat.
-    alert("Funcționalitate în lucru! (Necesită actualizare server)");
+    await fetch(`${API_URL}/projects`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, repository: repo, owner_id: currentUser.id })
+    });
+    
+    document.getElementById('new-project-name').value = '';
+    document.getElementById('new-project-repo').value = '';
+    loadProjects();
 }
+
+
 
 // ===============================
 // 3. PAGINA DE PROIECT (DETALII)

@@ -49,54 +49,39 @@
         </section>
 
         <section id="dashboard-view" class="view-section" style="display: none;">
-            <div class="section-header">
-                <h2>Proiectele Echipei</h2>
-                <div id="mp-actions"> 
-                     <input type="text" id="new-project-name" placeholder="Nume Proiect Nou" class="input-small">
-                     <input type="text" id="new-project-repo" placeholder="Link GitHub" class="input-small">
-                     <button onclick="addProject()" class="btn btn-secondary">＋ Proiect Nou</button>
-                </div>
+    
+    <div class="actions-bar">
+        <div class="action-card">
+            <h3>🚀 Creează Proiect</h3>
+            <div class="input-group">
+                <input type="text" id="new-project-name" placeholder="Nume Proiect">
+                <input type="text" id="new-project-repo" placeholder="Repo URL">
+                <button onclick="addProject()" class="btn btn-primary">Creează</button>
             </div>
-            
-            <div id="projects-list" class="grid-container">
-                </div>
-        </section>
+        </div>
 
-        <section id="project-view" class="view-section" style="display: none;">
-            <button onclick="showDashboard()" class="btn-back">⬅ Înapoi la Proiecte</button>
-            
-            <div class="project-header-banner">
-                <h2 id="project-title">Titlu Proiect</h2>
-                <button id="btn-join-tester" onclick="joinAsTester()" class="btn btn-warning" style="display:none;">
-                    Devino Tester (Join)
-                </button>
+        <div class="action-card">
+            <h3>🔑 Join cu Cod (MP)</h3>
+            <div class="input-group">
+                <input type="text" id="join-code-input" placeholder="Cod (ex: A7X92B)">
+                <button onclick="joinByCode()" class="btn btn-secondary">Join Proiect</button>
             </div>
+        </div>
+    </div>
 
-            <div id="add-bug-area" class="bug-form-card" style="display:none;">
-                <h3>🐞 Raportează o problemă</h3>
-                <div class="form-row">
-                    <input type="text" id="bug-desc" placeholder="Ce nu funcționează?">
-                    <select id="bug-severity">
-                        <option value="Low">Severitate: Mică</option>
-                        <option value="Medium">Severitate: Medie</option>
-                        <option value="Critical">Severitate: Critică 🚨</option>
-                    </select>
-                    <select id="bug-priority">
-                        <option value="Low">Prioritate: Scăzută</option>
-                        <option value="High">Prioritate: Urgentă 🔥</option>
-                    </select>
-                </div>
-                <input type="text" id="bug-commit" placeholder="Link către commit (opțional)" style="margin-top:10px;">
-                <button onclick="reportBug()" class="btn btn-primary" style="margin-top:10px;">Raportează Bug</button>
-            </div>
+    <hr class="divider">
 
-            <div class="bugs-container">
-                <h3>Lista Probleme</h3>
-                <ul id="bugs-list" class="bug-list-styled">
-                    </ul>
-            </div>
-        </section>
+    <h2 class="section-title">📂 Proiectele Mele</h2>
+    <div id="my-projects-list" class="grid-container">
+        </div>
 
+    <hr class="divider">
+
+    <h2 class="section-title">🌍 Explorează Proiecte Noi (Devino Tester)</h2>
+    <div id="public-feed-list" class="grid-container">
+        </div>
+
+</section>
     </main>
 
     <script src="app.js"></script>
