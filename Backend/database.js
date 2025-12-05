@@ -18,7 +18,9 @@ const Project = sequelize.define('Project', {
     name: { type: DataTypes.STRING, allowNull: false },
     repository: { type: DataTypes.STRING },
     owner_id: { type: DataTypes.INTEGER },
-    join_code: { type: DataTypes.STRING, unique: true }
+    join_code: { type: DataTypes.STRING, unique: true },
+    description: { type: DataTypes.STRING }, 
+    technologies: { type: DataTypes.STRING } 
 });
 
 const ProjectMember = sequelize.define('ProjectMember', {
@@ -39,9 +41,14 @@ const Bug = sequelize.define('Bug', {
     assigned_to: { type: DataTypes.INTEGER }
 });
 
-// 3. RELAȚII
+// 3. RELAȚII (AICI LIPSEA CEVA)
 Project.hasMany(ProjectMember, { foreignKey: 'project_id' });
 ProjectMember.belongsTo(User, { foreignKey: 'user_id' });
+
+// --- AM ADĂUGAT ASTA PENTRU DASHBOARD ---
+Project.hasMany(Bug, { foreignKey: 'project_id' }); 
+Bug.belongsTo(Project, { foreignKey: 'project_id' });
+// ----------------------------------------
 
 // 4. INIT & SEED
 async function initDB() {
@@ -53,14 +60,28 @@ async function initDB() {
             const mp = await User.create({ email: 'mp@test.com', password: '1234', name: 'Membru Proiect' });
             const tst = await User.create({ email: 'tst@test.com', password: '1234', name: 'Tester' });
             
-            const p1 = await Project.create({ name: 'Magazin Online', repository: 'http://github.com/demo', owner_id: mp.id, join_code: 'STORE1' });
+            // Am adăugat descrieri și aici ca să apară frumos din prima
+            const p1 = await Project.create({ 
+                name: 'Magazin Online', 
+                repository: 'http://github.com/demo', 
+                owner_id: mp.id, 
+                join_code: 'STORE1',
+                description: 'Magazin complet cu coș de cumpărături și plăți.',
+                technologies: 'React, Node.js'
+            });
             await ProjectMember.create({ project_id: p1.id, user_id: mp.id, role: 'MP' });
 
-            await Project.create({ name: 'Aplicatie Chat', repository: 'http://github.com/chat', owner_id: tst.id, join_code: 'CHAT99' });
+            await Project.create({ 
+                name: 'Aplicatie Chat', 
+                repository: 'http://github.com/chat', 
+                owner_id: tst.id, 
+                join_code: 'CHAT99',
+                description: 'Chat în timp real pentru studenți.',
+                technologies: 'Socket.io, Express'
+            });
             console.log(">> Date de test create!");
         }
     } catch (err) { console.error(err); }
 }
 
-// EXPORTĂM TOT CE AVEM NEVOIE ÎN ALTE FIȘIERE
 module.exports = { sequelize, User, Project, ProjectMember, Bug, Op, initDB };

@@ -2,9 +2,7 @@ const express = require('express');
 const cors = require('cors');
 
 // 1. IMPORTĂM CE AM MUTAT ÎN ALTE FIȘIERE
-// Aici aducem modelele și funcția de start a bazei de date
 const { initDB, User, Project, ProjectMember, Bug, Op } = require('./database');
-// Aici aducem logica pentru Login/Register
 const AuthController = require('./AuthController');
 
 const app = express();
@@ -13,38 +11,46 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
-// 2. PORNIM BAZA DE DATE (Funcția e importată din database.js)
+// 2. PORNIM BAZA DE DATE
 initDB();
 
 // --- 3. HELPER ---
-// Păstrăm funcția asta aici pentru că e folosită la crearea proiectelor
 const generateCode = () => Math.random().toString(36).substring(2, 8).toUpperCase();
 
 // --- 4. RUTELE API ---
 
-// AUTH (Folosim Controller-ul nou -> mult mai curat!)
+// AUTH
 app.post('/api/register', AuthController.register);
 app.post('/api/login', AuthController.login);
 
-// PROIECTE (Logica rămâne aici momentan, dar folosim modelele importate)
+// PROIECTE (Versiunea ACTUALIZATĂ - include Bug-uri pentru bara de progres)
 app.get('/api/projects', async (req, res) => {
     try {
         const projects = await Project.findAll({
-            include: [{ 
-                model: ProjectMember,
-                include: [User]
-            }]
+            include: [
+                { model: ProjectMember, include: [User] },
+                { model: Bug } // <--- NECESAR PENTRU BARA DE SĂNĂTATE
+            ]
         });
         res.json(projects);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// CREARE PROIECT (Versiunea ACTUALIZATĂ - salvează descrierea și tehnologiile)
 app.post('/api/projects', async (req, res) => {
     try {
-        const { name, repository, owner_id } = req.body;
-        const code = generateCode(); // Folosim funcția de mai sus
+        const { name, repository, owner_id, description, technologies } = req.body;
+        const code = generateCode();
         
-        const project = await Project.create({ name, repository, owner_id, join_code: code });
+        const project = await Project.create({ 
+            name, 
+            repository, 
+            owner_id, 
+            join_code: code,
+            description,   // <--- SE SALVEAZĂ DESCRIEREA
+            technologies   // <--- SE SALVEAZĂ TEHNOLOGIILE
+        });
+        
         await ProjectMember.create({ project_id: project.id, user_id: owner_id, role: 'MP' });
         
         res.json({ message: "Proiect creat!", project });
@@ -80,7 +86,7 @@ app.post('/api/projects/:id/join', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// SEARCH (Acum 'Op' vine importat din database.js)
+// SEARCH
 app.get('/api/search', async (req, res) => {
     const query = req.query.q;
     if(!query) return res.json({ users: [], projects: [] });
@@ -96,7 +102,7 @@ app.get('/api/search', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// BUG ROUTES (Necesare pentru Dashboard)
+// BUG ROUTES
 app.get('/api/projects/:id/bugs', async (req, res) => {
     try {
         const bugs = await Bug.findAll({ where: { project_id: req.params.id } });

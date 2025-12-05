@@ -1,20 +1,18 @@
 /* =========================================
-   1. THEME: LADYBUG GARDEN 🐞🌿 (VARIABILE)
+   1. SETĂRI GLOBALE & VARIABILE
    ========================================= */
 :root {
-    --primary: #0f172a;       /* Navy (Navigatie) */
-    --accent: #e11d48;        /* Ladybug Red (Actiuni/Erori) */
-    --leaf-green: #22c55e;    /* Verde (eatatus Active) */
-    --sky-blue: #3b82f6;      /* Albastru (Status In Progress) */
-    --sleep-gray: #64748b;    /* Gri (Status Closed) */
-    --bg: #f0f9ff;            /* Cer senin (Fundal General) */
+    --primary: #0f172a;       /* Navy inchis */
+    --accent: #e11d48;        /* Rosu Ladybug */
+    --leaf-green: #22c55e;    /* Verde */
+    --sky-blue: #3b82f6;      /* Albastru */
+    --sleep-gray: #64748b;    /* Gri */
+    --bg: #f0f9ff;            /* Fundal General */
     --white: #ffffff;
     --text: #334155;
 }
 
-* {
-    box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
     margin: 0;
@@ -25,7 +23,7 @@ body {
 }
 
 /* =========================================
-   2. LOGIN PAGE (REPARAT) 🛠️
+   2. LOGIN PAGE
    ========================================= */
 .login-container {
     display: flex;
@@ -39,25 +37,21 @@ body {
     background: var(--white);
     padding: 2.5rem;
     border-radius: 20px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.1); /* Umbră mai fină */
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
     width: 100%;
     max-width: 400px;
     text-align: center;
     border-top: 6px solid var(--accent);
 }
 
-/* ASTA REPARĂ LOGO-UL IMENS */
 .logo {
-    width: 80px !important; /* Forțăm dimensiunea */
+    width: 80px !important;
     height: auto;
     margin-bottom: 1rem;
     display: inline-block;
 }
 
-.card h2 {
-    margin-bottom: 0.5rem;
-    color: var(--primary);
-}
+.card h2 { margin-bottom: 0.5rem; color: var(--primary); }
 
 .card input {
     width: 100%;
@@ -68,12 +62,8 @@ body {
     outline: none;
     font-size: 1rem;
     font-family: inherit;
-    transition: border 0.2s;
 }
-
-.card input:focus {
-    border-color: var(--accent);
-}
+.card input:focus { border-color: var(--accent); }
 
 .card button {
     width: 100%;
@@ -88,25 +78,13 @@ body {
     font-size: 1rem;
     transition: transform 0.1s;
 }
-
-.card button:hover {
-    background-color: #1e293b;
-    transform: scale(1.02);
-}
+.card button:hover { background-color: #1e293b; transform: scale(1.02); }
 
 /* =========================================
    3. NAVBAR & LAYOUT
    ========================================= */
-.app-layout {
-    width: 100%;
-    min-height: 100vh;
-}
-
-.main-content {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 30px 20px;
-}
+.app-layout { width: 100%; min-height: 100vh; }
+.main-content { max-width: 1100px; margin: 0 auto; padding: 30px 20px; }
 
 .navbar {
     background: var(--primary);
@@ -121,35 +99,22 @@ body {
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
-.nav-brand {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-.nav-brand h1 { font-size: 1.25rem; margin: 0; }
-
+.nav-brand { display: flex; align-items: center; gap: 12px; cursor: pointer; }
 .highlight { color: var(--accent); }
 
 .search-input {
-    padding: 8px 50px;
+    padding: 8px 20px;
     border-radius: 20px;
     border: none;
     outline: none;
     width: 100%;
-    max-width: 300px;
-    background: rgba(255,255,255,0.1);
+    min-width: 250px;
+    background: rgba(255,255,255,0.15);
     color: white;
-    transition: background 0.2s;
 }
-.search-input:focus { background: rgba(255,255,255,0.2); }
 .search-input::placeholder { color: rgba(255,255,255,0.7); }
 
-.user-panel {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
+.user-panel { display: flex; align-items: center; gap: 15px; }
 .btn-logout {
     background: rgba(255,255,255,0.15);
     border: none;
@@ -162,226 +127,60 @@ body {
 .btn-logout:hover { background: var(--accent); }
 
 /* =========================================
-   4. DASHBOARD - GRĂDINA 🌿
+   4. DASHBOARD - ZONA ACȚIUNI (SPLIT) ✨
    ========================================= */
-/* Tab-uri */
-.garden-tabs {
+.actions-grid {
     display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-bottom: 30px;
+    gap: 30px;
+    margin-bottom: 40px;
     flex-wrap: wrap;
 }
 
-.tab-btn {
-    background: white;
-    padding: 10px 25px;
-    border-radius: 30px;
-    border: 2px solid transparent;
-    cursor: pointer;
-    font-weight: 600;
-    color: #64748b;
-    transition: all 0.3s;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-}
-
-.tab-btn.active {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
-}
-
-.tab-active.active { border-color: var(--accent); color: var(--accent); }
-.tab-resolved.active { border-color: var(--leaf-green); color: var(--leaf-green); }
-.tab-closed.active { border-color: var(--sleep-gray); color: var(--sleep-gray); }
-
-/* Carduri Proiecte & Bug-uri */
-.projects-grid, .bug-cards-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
-}
-
-.project-card, .bug-card {
-    background: white;
-    border-radius: 16px;
-    padding: 20px;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.03);
-    border: 1px solid rgba(0,0,0,0.05);
-    transition: transform 0.2s;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-}
-
-.project-card:hover, .bug-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.08);
-}
-
-/* Borduri colorate pt Bug-uri */
-.bug-card { border-left: 6px solid #ccc; }
-.severity-Critical { border-left-color: var(--accent); }
-.severity-Medium { border-left-color: #f59e0b; }
-.severity-Low { border-left-color: var(--leaf-green); }
-
-.bug-header { display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: bold; }
-.bug-status-badge { font-size: 0.75rem; padding: 4px 10px; border-radius: 12px; background: #f1f5f9; font-weight: bold; width: fit-content; }
-
-/* Butoane interne */
-.btn-open {
-    background: var(--primary);
-    color: white;
-    border: none;
-    padding: 10px;
-    border-radius: 8px;
-    width: 100%;
-    margin-top: 15px;
-    cursor: pointer;
-}
-
-/* =========================================
-   5. MODAL & FAB 🛠️
-   ========================================= */
-.fab-btn {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    width: 60px;
-    height: 60px;
-    background: var(--accent);
-    color: white;
-    border-radius: 50%;
-    border: none;
-    font-size: 30px;
-    box-shadow: 0 10px 25px rgba(225, 29, 72, 0.4);
-    cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: transform 0.3s;
-    z-index: 200;
-}
-.fab-btn:hover { transform: scale(1.1) rotate(90deg); }
-
-.modal-overlay {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(15, 23, 42, 0.7);
-    backdrop-filter: blur(4px);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.modal-content {
-    background: white;
-    width: 90%;
-    max-width: 450px;
+.action-card {
+    flex: 1;
+    min-width: 320px;
+    background: #ffffff;
     padding: 30px;
     border-radius: 20px;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.2);
-    position: relative;
-    animation: popIn 0.3s ease;
-}
-
-@keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-
-.close-modal {
-    position: absolute; top: 15px; right: 20px;
-    background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #94a3b8;
-}
-
-/* Priority Selector */
-.priority-selector { display: flex; gap: 10px; margin: 15px 0; }
-.prio-btn {
-    flex: 1;
-    padding: 10px;
-    border: 2px solid #e2e8f0;
-    border-radius: 12px;
-    background: white;
-    cursor: pointer;
-    text-align: center;
-    font-size: 1.5rem;
-    transition: all 0.2s;
-}
-.prio-btn.selected { border-color: var(--accent); background: #fff1f2; transform: scale(1.05); }
-.prio-label { display: block; font-size: 0.75rem; color: #64748b; font-weight: bold; }
-
-/* Status Actions in Card */
-.status-actions { display: flex; gap: 10px; margin-top: 15px; }
-.btn-confirm { flex: 1; background: var(--leaf-green); color: white; border:none; padding: 8px; border-radius: 6px; cursor: pointer; }
-.btn-reject { flex: 1; background: var(--accent); color: white; border:none; padding: 8px; border-radius: 6px; cursor: pointer; }
-
-
-/* =========================================
-   FIX: DASHBOARD ACTIONS (SPLIT & CARDURI)
-   ========================================= */
-
-/* 1. Containerul care le ține pe ambele (Split 50/50) */
-.actions-grid {
-    display: flex;           /* Le pune una lângă alta */
-    gap: 30px;               /* Spațiu între ele */
-    margin-bottom: 40px;     /* Spațiu până la lista de proiecte */
-    flex-wrap: wrap;         /* Pe telefon cad una sub alta */
-}
-
-/* 2. Cardul propriu-zis (Cutia albă) */
-.action-card {
-    flex: 1;                 /* Ocupă spațiu egal (50%) */
-    min-width: 320px;        /* Nu se face prea mic */
-    background: #ffffff;     /* FUNDAL ALB OBLIGATORIU */
-    padding: 30px;           /* Spațiu interior generos */
-    border-radius: 20px;     /* Colțuri rotunde */
-    box-shadow: 0 10px 30px rgba(0,0,0,0.05); /* Umbră fină */
-    border: 1px solid #e2e8f0; /* Bordură discretă */
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    border: 1px solid #e2e8f0;
     display: flex;
-    flex-direction: column;  /* Elementele interne (input, btn) unul sub altul */
+    flex-direction: column;
 }
 
-/* Borduri colorate sus pentru accent */
-.create-card { border-top: 6px solid #e11d48; } /* Roșu */
-.join-card   { border-top: 6px solid #0f172a; } /* Navy */
+.create-card { border-top: 6px solid var(--accent); }
+.join-card   { border-top: 6px solid var(--primary); }
 
-/* 3. Titlurile din carduri */
 .action-card h3 {
     margin-top: 0;
     margin-bottom: 20px;
     font-size: 1.3rem;
-    color: #0f172a;
+    color: var(--primary);
     font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 10px;
 }
 
-/* 4. Input-urile (TextBox-urile) - Să fie mari și clare */
+/* INPUTURI MARI SI FRUMOASE */
 .action-card input {
-    width: 100%;             /* Ocupă toată lățimea cardului */
-    padding: 14px 18px;      /* Mai înalte */
-    margin-bottom: 15px;     /* Spațiu între ele */
+    width: 100%;
+    padding: 14px 18px;
+    margin-bottom: 15px;
     border: 2px solid #e2e8f0;
     border-radius: 12px;
     font-size: 1rem;
-    background-color: #f8fafc; /* Ușor gri */
+    background-color: #f8fafc;
     transition: all 0.2s;
-    font-family: 'Poppins', sans-serif;
+    font-family: inherit;
 }
-
 .action-card input:focus {
-    border-color: #3b82f6;   /* Albastru când scrii */
+    border-color: #3b82f6;
     background-color: #fff;
     outline: none;
 }
 
-/* 5. Butoanele din aceste carduri */
 .action-card button {
     width: 100%;
     padding: 14px;
-    margin-top: auto;        /* Împinge butonul jos de tot */
+    margin-top: auto;
     border-radius: 12px;
     font-size: 1rem;
     font-weight: 600;
@@ -389,19 +188,139 @@ body {
     border: none;
     transition: transform 0.1s;
 }
+.create-card .btn-primary { background-color: var(--accent); color: white; }
+.join-card .btn-secondary { background-color: var(--primary); color: white; }
+.action-card button:hover { transform: translateY(-2px); }
 
-.action-card button:hover {
-    transform: translateY(-2px);
+/* =========================================
+   5. LISTA PROIECTE & CARDURI INTELIGENTE 🧠
+   ========================================= */
+.divider { border: 0; height: 1px; background: #cbd5e1; margin: 40px 0; }
+
+.projects-grid, .bug-cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 25px;
 }
 
-/* Specific pentru butonul de Creare (Roșu) */
-.create-card button {
-    background-color: #e11d48;
-    color: white;
+.project-card {
+    background: white;
+    padding: 25px;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    border: 1px solid rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.2s;
+    cursor: pointer;
 }
 
-/* Specific pentru butonul de Join (Navy) */
-.join-card button {
-    background-color: #0f172a;
-    color: white;
+/* STILURI PENTRU CARDURI "BOGATE" (Rich Cards) */
+.rich-card { border-top: 5px solid transparent; }
+.rich-card:hover { border-top-color: var(--accent); transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+
+.card-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
 }
+.card-header h4 { margin: 0; color: var(--primary); font-size: 1.1rem; }
+
+.proj-desc {
+    font-size: 0.9rem; color: #64748b; margin-bottom: 15px;
+    height: 40px; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* Tech Tags */
+.tech-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 15px; }
+.tech-tag {
+    background: #f1f5f9; color: var(--primary); font-size: 0.75rem;
+    padding: 3px 8px; border-radius: 10px; border: 1px solid #e2e8f0;
+}
+
+/* Health Bar */
+.health-section { margin-bottom: 15px; }
+.health-label { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: bold; color: #475569; margin-bottom: 5px; }
+.progress-bar { width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+
+/* Avatars */
+.team-avatars { display: flex; margin-bottom: 15px; padding-left: 10px; }
+.avatar-circle {
+    width: 30px; height: 30px; background: var(--primary); color: white;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem; border: 2px solid white; margin-left: -10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.avatar-circle.more { background: #cbd5e1; color: #334155; }
+
+/* Badges */
+.badge-mp { background: var(--primary); color: white; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; }
+.badge-tst { background: #f59e0b; color: white; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; }
+
+.btn-open {
+    background: var(--primary); color: white; border: none;
+    padding: 10px; border-radius: 8px; cursor: pointer; width: 100%;
+}
+.btn-outline {
+    background: transparent; border: 1px solid var(--accent); color: var(--accent);
+    padding: 10px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold;
+}
+.btn-outline:hover { background: #fff1f2; }
+
+/* =========================================
+   6. GRĂDINA (BUG DETAILS & TABS)
+   ========================================= */
+.garden-tabs {
+    display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; flex-wrap: wrap;
+}
+.tab-btn {
+    background: white; padding: 10px 25px; border-radius: 30px;
+    border: 2px solid transparent; cursor: pointer; font-weight: 600; color: #64748b;
+    transition: all 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+.tab-btn.active { transform: translateY(-2px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
+.tab-active.active { border-color: var(--accent); color: var(--accent); }
+.tab-resolved.active { border-color: var(--leaf-green); color: var(--leaf-green); }
+.tab-closed.active { border-color: var(--sleep-gray); color: var(--sleep-gray); }
+
+/* Bug Cards */
+.bug-card { border-left: 6px solid #ccc; padding: 20px; border-radius: 12px; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+.severity-Critical { border-left-color: var(--accent); }
+.severity-Medium { border-left-color: #f59e0b; }
+.severity-Low { border-left-color: var(--leaf-green); }
+
+.bug-header { display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: bold; }
+.bug-status-badge { font-size: 0.75rem; padding: 4px 10px; border-radius: 12px; background: #f1f5f9; font-weight: bold; width: fit-content; }
+
+/* =========================================
+   7. MODAL & FAB
+   ========================================= */
+.fab-btn {
+    position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px;
+    background: var(--accent); color: white; border-radius: 50%; border: none;
+    font-size: 30px; box-shadow: 0 10px 25px rgba(225, 29, 72, 0.4);
+    cursor: pointer; z-index: 200; display: flex; align-items: center; justify-content: center;
+    transition: transform 0.3s;
+}
+.fab-btn:hover { transform: scale(1.1) rotate(90deg); }
+
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px);
+    display: flex; justify-content: center; align-items: center; z-index: 1000;
+}
+.modal-content {
+    background: white; width: 90%; max-width: 450px; padding: 30px;
+    border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); position: relative;
+}
+.close-modal {
+    position: absolute; top: 15px; right: 20px; background: none; border: none;
+    font-size: 1.5rem; cursor: pointer; color: #94a3b8;
+}
+.priority-selector { display: flex; gap: 10px; margin: 15px 0; }
+.prio-btn {
+    flex: 1; padding: 10px; border: 2px solid #e2e8f0; border-radius: 12px;
+    background: white; cursor: pointer; text-align: center; font-size: 1.5rem;
+}
+.prio-btn.selected { border-color: var(--accent); background: #fff1f2; transform: scale(1.05); }
+.prio-label { display: block; font-size: 0.75rem; color: #64748b; font-weight: bold; }
