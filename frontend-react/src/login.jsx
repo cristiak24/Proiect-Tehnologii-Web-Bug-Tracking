@@ -13,7 +13,7 @@ function Login({ onLoginSuccess }) {
     const [error, setError] = useState('');
     const [successMsg, setSuccessMsg] = useState('');
 
-    // --- TRIMITERE DATE CĂTRE SERVER ---
+    //TRIMITERE DATE CĂTRE SERVER 
     const handleSubmit = async () => {
         // Resetăm erorile vechi înainte de a trimite
         setError('');

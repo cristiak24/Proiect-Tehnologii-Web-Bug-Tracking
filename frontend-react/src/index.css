@@ -1,6 +1,4 @@
-/* =========================================
-   1. SETĂRI GLOBALE & VARIABILE
-   ========================================= */
+/*1. SETĂRI GLOBALE & VARIABILE */
 :root {
     --primary: #0f172a;       /* Navy inchis */
     --accent: #e11d48;        /* Rosu Ladybug */
@@ -22,9 +20,7 @@ body {
     min-height: 100vh;
 }
 
-/* =========================================
-   2. LOGIN PAGE
-   ========================================= */
+/*2. LOGIN PAGE*/
 .login-container {
     display: flex;
     justify-content: center;
@@ -80,9 +76,7 @@ body {
 }
 .card button:hover { background-color: #1e293b; transform: scale(1.02); }
 
-/* =========================================
-   3. NAVBAR & LAYOUT
-   ========================================= */
+/*3. NAVBAR & LAYOUT*/
 .app-layout { width: 100%; min-height: 100vh; }
 .main-content { max-width: 1100px; margin: 0 auto; padding: 30px 20px; }
 
@@ -126,9 +120,7 @@ body {
 }
 .btn-logout:hover { background: var(--accent); }
 
-/* =========================================
-   4. DASHBOARD - ZONA ACȚIUNI (SPLIT) ✨
-   ========================================= */
+/*4. DASHBOARD - ZONA ACȚIUNI (SPLIT)*/
 .actions-grid {
     display: flex;
     gap: 30px;
@@ -192,9 +184,7 @@ body {
 .join-card .btn-secondary { background-color: var(--primary); color: white; }
 .action-card button:hover { transform: translateY(-2px); }
 
-/* =========================================
-   5. LISTA PROIECTE & CARDURI INTELIGENTE 🧠
-   ========================================= */
+/* 5. LISTA PROIECTE & CARDURI INTELIGENTE*/
 .divider { border: 0; height: 1px; background: #cbd5e1; margin: 40px 0; }
 
 .projects-grid, .bug-cards-container {
@@ -267,9 +257,7 @@ body {
 }
 .btn-outline:hover { background: #fff1f2; }
 
-/* =========================================
-   6. GRĂDINA (BUG DETAILS & TABS)
-   ========================================= */
+/*  6. GRĂDINA (BUG DETAILS & TABS)*/
 .garden-tabs {
     display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; flex-wrap: wrap;
 }
@@ -292,9 +280,7 @@ body {
 .bug-header { display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: bold; }
 .bug-status-badge { font-size: 0.75rem; padding: 4px 10px; border-radius: 12px; background: #f1f5f9; font-weight: bold; width: fit-content; }
 
-/* =========================================
-   7. MODAL & FAB
-   ========================================= */
+/* 7. MODAL & FAB*/
 .fab-btn {
     position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px;
     background: var(--accent); color: white; border-radius: 50%; border: none;

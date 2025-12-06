@@ -21,7 +21,7 @@ function Dashboard({ user, searchQuery }) {
 
     useEffect(() => { loadProjects(); }, []);
 
-    // --- API CALLS ---
+    //API CALLS 
     const loadProjects = async () => {
         try {
             const res = await fetch('http://localhost:3000/api/projects');
@@ -36,7 +36,7 @@ function Dashboard({ user, searchQuery }) {
         } catch (e) { console.error(e); }
     };
 
-    // --- ACȚIUNI DASHBOARD ---
+    //ACȚIUNI DASHBOARD
     const handleCreateProject = async () => {
         if (!newProjName) return alert("Pune un nume la proiect!");
         await fetch('http://localhost:3000/api/projects', {
@@ -94,7 +94,7 @@ function Dashboard({ user, searchQuery }) {
         setView('garden'); 
     };
 
-    // --- ACȚIUNI GRĂDINĂ (BUG-URI) ---
+    //ACȚIUNI GRĂDINĂ (BUG-URI)
     const handleCreateBug = async (bugData) => {
         await fetch('http://localhost:3000/api/bugs', {
             method: 'POST',
@@ -114,7 +114,7 @@ function Dashboard({ user, searchQuery }) {
         loadBugs(activeProject.id);
     };
 
-    // --- FILTRARE ---
+    // FILTRARE
     const searchResults = projects.filter(p => 
         p.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -134,9 +134,7 @@ function Dashboard({ user, searchQuery }) {
         !p.ProjectMembers.some(m => m.user_id === user.id)
     );
 
-    // ===================================
     // VEDEREA 1: LISTĂ (DASHBOARD)
-    // ===================================
     if (view === 'list') {
         return (
             <div>
@@ -248,10 +246,7 @@ function Dashboard({ user, searchQuery }) {
         );
     }
 
-    // ===================================
     // VEDEREA 2: GRĂDINĂ (BUG-URI)
-    // ===================================
-    
     const filteredBugs = bugs.filter(b => {
         if(activeTab === 'active') return b.status === 'Open' || b.status === 'In Progress';
         if(activeTab === 'resolved') return b.status === 'Resolved';

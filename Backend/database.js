@@ -45,10 +45,9 @@ const Bug = sequelize.define('Bug', {
 Project.hasMany(ProjectMember, { foreignKey: 'project_id' });
 ProjectMember.belongsTo(User, { foreignKey: 'user_id' });
 
-// --- AM ADĂUGAT ASTA PENTRU DASHBOARD ---
+// AM ADĂUGAT ASTA PENTRU DASHBOARD 
 Project.hasMany(Bug, { foreignKey: 'project_id' }); 
 Bug.belongsTo(Project, { foreignKey: 'project_id' });
-// ----------------------------------------
 
 // 4. INIT & SEED
 async function initDB() {

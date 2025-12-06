@@ -1,16 +1,43 @@
-# React + Vite
+Aplicatie web pentru gestionarea bug-urilor
+Echipa: CSS
+Membri: Bucura Ștefan-Dacian, Băra Marius Cristian-Valentin, Bodea Ștefania-Denisa 
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Functionalitati minime
+Student / Tester (TST)
+Autentificare simpla cu email
+Poate raporta un bug: severitate, prioritate, descriere, link commit
+Se poate alatura unui proiect existent
 
-Currently, two official plugins are available:
+Membru proiect (MP)
+Autentificare simpla cu email
+Poate crea un proiect: nume proiect, repository, echipa
+Poate vedea bug-urile proiectelor din care face parte
+Poate aloca rezolvarea unui bug
+Poate actualiza statusul bug-ului cu link commit de rezolvare
+Sistem de permisiuni: MP poate adauga/modifica proiect si actualiza bug-uri, TST poate adauga bug-uri
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Functionalitati optionale
+Dashboard vizual pentru bug-uri
+Statistici privind bug-urile pe proiect
+Export date / rapoarte
+Notificari pentru alocari/resolvari bug-uri
 
-## React Compiler
+Tehnologii
+Frontend: React
+Backend: Node.js + Express
+Baza de date: PostgreSQL
+ORM: Sequelize
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Plan de implementare
+Faza 0 - Creare repository, detaliere specificatii, definire structura proiect
+Faza 1 - Realizare skeleton backend, definire modele date, documentatie Stage 1
+Faza 2 - Implementare API REST complet + interfata grafica minima
+Faza 3 - Finalizare frontend SPA + integrare cu backend, demo local
+Faza 4 - Implementare functionalitati optionale si deploy, demo final
 
-## Expanding the ESLint configuration
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Pentru a verifica aplicatia trebuie sa va conectati cu: mp@test.com
+1234
+sau
+tst@test.com
+1234

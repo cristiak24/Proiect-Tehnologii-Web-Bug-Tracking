@@ -14,10 +14,10 @@ app.use(express.json());
 // 2. PORNIM BAZA DE DATE
 initDB();
 
-// --- 3. HELPER ---
+// 3. HELPER 
 const generateCode = () => Math.random().toString(36).substring(2, 8).toUpperCase();
 
-// --- 4. RUTELE API ---
+// 4. RUTELE API 
 
 // AUTH
 app.post('/api/register', AuthController.register);
@@ -46,8 +46,8 @@ app.post('/api/projects', async (req, res) => {
             repository, 
             owner_id, 
             join_code: code,
-            description,   // <--- SE SALVEAZĂ DESCRIEREA
-            technologies   // <--- SE SALVEAZĂ TEHNOLOGIILE
+            description,   // SE SALVEAZĂ DESCRIEREA
+            technologies   // SE SALVEAZĂ TEHNOLOGIILE
         });
         
         await ProjectMember.create({ project_id: project.id, user_id: owner_id, role: 'MP' });
