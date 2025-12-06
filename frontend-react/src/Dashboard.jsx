@@ -114,13 +114,6 @@ function Dashboard({ user, searchQuery }) {
         loadBugs(activeProject.id);
     };
 
-    // --- HELPERE VIZUALE ---
-    const calculateHealth = (projectBugs) => {
-        if (!projectBugs || projectBugs.length === 0) return 100;
-        const closed = projectBugs.filter(b => b.status === 'Closed').length;
-        return Math.round((closed / projectBugs.length) * 100);
-    };
-
     // --- FILTRARE ---
     const searchResults = projects.filter(p => 
         p.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -175,7 +168,6 @@ function Dashboard({ user, searchQuery }) {
                     {managedProjects.length === 0 && <p style={{color:'#64748b'}}>Nu gestionezi niciun proiect.</p>}
                     
                     {managedProjects.map(p => {
-                        const health = calculateHealth(p.Bugs); // Backend-ul trebuie să trimită Bugs
                         const techTags = p.technologies ? p.technologies.split(',') : [];
 
                         return (
@@ -194,17 +186,6 @@ function Dashboard({ user, searchQuery }) {
                                     {techTags.map((tag, i) => (
                                         <span key={i} className="tech-tag">{tag.trim()}</span>
                                     ))}
-                                </div>
-
-                                {/* Bara Sănătate */}
-                                <div className="health-section">
-                                    <div className="health-label">
-                                        <span>Sănătate</span>
-                                        <span>{health}%</span>
-                                    </div>
-                                    <div className="progress-bar">
-                                        <div className="progress-fill" style={{width: `${health}%`, background: health > 50 ? '#22c55e' : '#e11d48'}}></div>
-                                    </div>
                                 </div>
 
                                 {/* Avatare Echipă */}

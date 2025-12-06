@@ -28,8 +28,7 @@ app.get('/api/projects', async (req, res) => {
     try {
         const projects = await Project.findAll({
             include: [
-                { model: ProjectMember, include: [User] },
-                { model: Bug } // <--- NECESAR PENTRU BARA DE SĂNĂTATE
+                { model: ProjectMember, include: [User] }
             ]
         });
         res.json(projects);
