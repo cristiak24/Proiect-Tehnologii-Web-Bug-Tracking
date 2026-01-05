@@ -1,46 +1,76 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createBrowserRouter, RouterProvider, Outlet, useNavigate, useLocation, Link, Navigate } from 'react-router-dom';
 import './index.css';
 import Login from './login';
 import Dashboard from './Dashboard';
 import Navbar from './Navbar';
+import ProjectDetails from './pages/ProjectDetails'; // We will create this
 
-function App() {
-  const [user, setUser] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  
-  // Stare globală pentru navigare (ca să meargă Logo-ul)
-  // key: forțează re-randarea Dashboard-ului când dăm click pe logo
-  const [dashboardKey, setDashboardKey] = useState(0); 
-
-  const handleGoHome = () => {
-    setSearchQuery(''); // Resetăm căutarea
-    setDashboardKey(prev => prev + 1); // Resetăm Dashboard-ul la ecranul principal
-  };
-
-  // Dacă nu e logat, arată Login
-  if (!user) {
-    return <Login onLoginSuccess={(u) => setUser(u)} />;
-  }
-
+// Layout wraper with Navbar
+const Layout = ({ user, onLogout }) => {
   return (
     <div className="app-layout">
-        <Navbar 
-            user={user} 
-            onLogout={() => setUser(null)} 
-            onSearch={(text) => setSearchQuery(text)}
-            onLogoClick={handleGoHome} // <--- Funcția nouă pentru Logo
-        />
-        
-        <main className="main-content">
-            {/* Folosim key pentru a reseta Dashboard-ul când apăsăm pe Logo */}
-            <Dashboard 
-                key={dashboardKey} 
-                user={user} 
-                searchQuery={searchQuery} 
-            />
-        </main>
+      <Navbar user={user} onLogout={onLogout} />
+      <main className="main-content fade-in">
+        <Outlet />
+      </main>
     </div>
   );
+};
+
+// Protected Route Wrapper
+const ProtectedRoute = ({ user, children }) => {
+  if (!user) return <Navigate to="/login" replace />;
+  return children;
+};
+
+function App() {
+  // Simple persistence for demo
+  const [user, setUser] = useState(() => {
+    const saved = localStorage.getItem('user');
+    return saved ? JSON.parse(saved) : null;
+  });
+
+  const handleLogin = (u) => {
+    setUser(u);
+    localStorage.setItem('user', JSON.stringify(u));
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem('user');
+  };
+
+  const router = createBrowserRouter([
+    {
+      path: "/login",
+      element: !user ? <Login onLoginSuccess={handleLogin} /> : <Navigate to="/" replace />
+    },
+    {
+      path: "/",
+      element: (
+        <ProtectedRoute user={user}>
+          <Layout user={user} onLogout={handleLogout} />
+        </ProtectedRoute>
+      ),
+      children: [
+        {
+          path: "/",
+          element: <Dashboard user={user} />
+        },
+        {
+          path: "/project/:id",
+          element: <ProjectDetails user={user} />
+        }
+      ]
+    },
+    {
+      path: "*",
+      element: <Navigate to="/" replace />
+    }
+  ]);
+
+  return <RouterProvider router={router} />;
 }
 
 export default App;

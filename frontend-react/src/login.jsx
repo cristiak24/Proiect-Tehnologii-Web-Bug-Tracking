@@ -8,7 +8,7 @@ function Login({ onLoginSuccess }) {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    
+
     // Mesaje de feedback
     const [error, setError] = useState('');
     const [successMsg, setSuccessMsg] = useState('');
@@ -21,8 +21,8 @@ function Login({ onLoginSuccess }) {
 
         // Pregătim datele
         const endpoint = isRegistering ? '/api/register' : '/api/login';
-        const payload = isRegistering 
-            ? { name, email, password } 
+        const payload = isRegistering
+            ? { name, email, password }
             : { email, password };
 
         try {
@@ -38,8 +38,8 @@ function Login({ onLoginSuccess }) {
                 // SUCCES
                 if (isRegistering) {
                     setSuccessMsg("Cont creat cu succes! Conectează-te acum.");
-                    setIsRegistering(false); 
-                    setPassword(''); 
+                    setIsRegistering(false);
+                    setPassword('');
                 } else {
                     onLoginSuccess(data.user);
                 }
@@ -60,40 +60,40 @@ function Login({ onLoginSuccess }) {
 
     return (
         <div className="login-container">
-            <div className="card">
+            <div className="glass-panel auth-box">
                 <img src="/logo.png" alt="Ladybug" className="logo" />
-                
+
                 <h2>{isRegistering ? 'Creează Cont' : 'Bine ai venit!'}</h2>
                 <p>{isRegistering ? 'Alătură-te echipei' : 'Autentificare în sistem'}</p>
 
                 {/* Feedback vizual */}
-                {error && <div style={{ color: '#e11d48', background:'#fff1f2', padding:'10px', borderRadius:'8px', marginBottom:'15px', fontSize:'0.9rem' }}>⚠️ {error}</div>}
-                {successMsg && <div style={{ color: '#166534', background:'#dcfce7', padding:'10px', borderRadius:'8px', marginBottom:'15px', fontSize:'0.9rem' }}>✅ {successMsg}</div>}
+                {error && <div style={{ color: '#e11d48', background: '#fff1f2', padding: '10px', borderRadius: '8px', marginBottom: '15px', fontSize: '0.9rem' }}>⚠️ {error}</div>}
+                {successMsg && <div style={{ color: '#166534', background: '#dcfce7', padding: '10px', borderRadius: '8px', marginBottom: '15px', fontSize: '0.9rem' }}>✅ {successMsg}</div>}
 
                 {/* Formular Simplificat */}
                 {isRegistering && (
-                    <div style={{textAlign:'left'}}>
-                        <label style={{fontWeight:'bold', fontSize:'0.8rem', marginLeft:'5px'}}>Nume</label>
-                        <input type="text" placeholder="Numele tău" value={name} onChange={(e) => setName(e.target.value)} />
+                    <div style={{ textAlign: 'left', marginBottom: '15px' }}>
+                        <label style={{ display: 'block', fontWeight: 'bold', fontSize: '0.8rem', marginLeft: '5px', marginBottom: '5px', color: 'var(--text-muted)' }}>Nume</label>
+                        <input className="input-field" type="text" placeholder="Numele tău" value={name} onChange={(e) => setName(e.target.value)} />
                     </div>
                 )}
 
-                <div style={{textAlign:'left'}}>
-                    <label style={{fontWeight:'bold', fontSize:'0.8rem', marginLeft:'5px'}}>Email</label>
-                    <input type="email" placeholder="email@exemplu.ro" value={email} onChange={(e) => setEmail(e.target.value)} />
+                <div style={{ textAlign: 'left', marginBottom: '15px' }}>
+                    <label style={{ display: 'block', fontWeight: 'bold', fontSize: '0.8rem', marginLeft: '5px', marginBottom: '5px', color: 'var(--text-muted)' }}>Email</label>
+                    <input className="input-field" type="email" placeholder="email@exemplu.ro" value={email} onChange={(e) => setEmail(e.target.value)} />
                 </div>
 
-                <div style={{textAlign:'left'}}>
-                    <label style={{fontWeight:'bold', fontSize:'0.8rem', marginLeft:'5px'}}>Parolă</label>
-                    <input type="password" placeholder="••••" value={password} onChange={(e) => setPassword(e.target.value)} />
+                <div style={{ textAlign: 'left', marginBottom: '20px' }}>
+                    <label style={{ display: 'block', fontWeight: 'bold', fontSize: '0.8rem', marginLeft: '5px', marginBottom: '5px', color: 'var(--text-muted)' }}>Parolă</label>
+                    <input className="input-field" type="password" placeholder="••••" value={password} onChange={(e) => setPassword(e.target.value)} />
                 </div>
-                
-                <button onClick={handleSubmit}>
+
+                <button onClick={handleSubmit} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
                     {isRegistering ? 'Înregistrează-te' : 'Intră în Aplicație'}
                 </button>
-                
-                <div style={{marginTop: '20px', fontSize: '0.9rem', color: '#64748b', borderTop: '1px solid #e2e8f0', paddingTop: '15px'}}>
-                    <span onClick={toggleMode} style={{ color: '#0f172a', fontWeight: 'bold', cursor: 'pointer', textDecoration: 'underline' }}>
+
+                <div style={{ marginTop: '20px', fontSize: '0.9rem', color: '#64748b', borderTop: '1px solid var(--glass-border)', paddingTop: '15px' }}>
+                    <span onClick={toggleMode} style={{ color: 'var(--primary)', fontWeight: 'bold', cursor: 'pointer' }}>
                         {isRegistering ? 'Mergi la Conectare' : 'Creează un cont nou'}
                     </span>
                 </div>

@@ -1,23 +1,24 @@
 import { useState, useEffect } from 'react';
-import AddBugModal from './AddBugModal';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Plus, Users, ShieldCheck, Shield } from 'lucide-react';
 
-function Dashboard({ user, searchQuery }) {
+function Dashboard({ user }) {
+    const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const searchQuery = searchParams.get('q') || '';
+
     // --- STATE ---
     const [projects, setProjects] = useState([]);
-    const [view, setView] = useState('list'); // 'list' sau 'garden'
-    const [activeProject, setActiveProject] = useState(null);
-    const [bugs, setBugs] = useState([]);
-    
-    // Formulare Dashboard
+
+    // Create Project Form
     const [newProjName, setNewProjName] = useState('');
     const [newProjRepo, setNewProjRepo] = useState('');
     const [newProjDesc, setNewProjDesc] = useState('');
     const [newProjTech, setNewProjTech] = useState('');
-    const [joinCode, setJoinCode] = useState('');
+    const [isCreating, setIsCreating] = useState(false);
 
-    // State Grădină
-    const [activeTab, setActiveTab] = useState('active');
-    const [showModal, setShowModal] = useState(false);
+    // Join Form
+    const [joinCode, setJoinCode] = useState('');
 
     useEffect(() => { loadProjects(); }, []);
 
@@ -29,286 +30,181 @@ function Dashboard({ user, searchQuery }) {
         } catch (e) { console.error(e); }
     };
 
-    const loadBugs = async (projId) => {
-        try {
-            const res = await fetch(`http://localhost:3000/api/projects/${projId}/bugs`);
-            setBugs(await res.json());
-        } catch (e) { console.error(e); }
-    };
-
     //ACȚIUNI DASHBOARD
     const handleCreateProject = async () => {
-        if (!newProjName) return alert("Pune un nume la proiect!");
+        if (!newProjName) return alert("Project name required!");
         await fetch('http://localhost:3000/api/projects', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ 
-                name: newProjName, 
-                repository: newProjRepo, 
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: newProjName,
+                repository: newProjRepo,
                 owner_id: user.id,
                 description: newProjDesc,
                 technologies: newProjTech
             })
         });
         setNewProjName(''); setNewProjRepo(''); setNewProjDesc(''); setNewProjTech('');
+        setIsCreating(false);
         loadProjects();
     };
 
     const handleJoinCode = async () => {
         const res = await fetch('http://localhost:3000/api/projects/join-code', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId: user.id, code: joinCode })
         });
-        if(res.ok) {
-            alert("Succes!");
+        if (res.ok) {
+            alert("Success!");
             setJoinCode('');
             loadProjects();
         } else {
-            alert("Cod invalid!");
+            alert("Invalid Code!");
         }
     };
 
-    // Logica pentru "Tester Universal"
-    const handleQuickContribute = async (project) => {
-        // 1. Join automat ca TST
+    const handleQuickContribute = async (project, e) => {
+        e.stopPropagation();
         await fetch(`http://localhost:3000/api/projects/${project.id}/join`, {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId: user.id })
         });
-        
-        // 2. Refresh lista de proiecte
-        const res = await fetch('http://localhost:3000/api/projects');
-        const updatedProjects = await res.json();
-        setProjects(updatedProjects);
 
-        // 3. Găsim proiectul actualizat și deschidem grădina
-        const updatedProject = updatedProjects.find(p => p.id === project.id);
-        handleOpenGarden(updatedProject);
-    };
+        const updated = await (await fetch('http://localhost:3000/api/projects')).json();
+        setProjects(updated);
 
-    const handleOpenGarden = async (project) => {
-        setActiveProject(project);
-        await loadBugs(project.id);
-        setView('garden'); 
-    };
-
-    //ACȚIUNI GRĂDINĂ (BUG-URI)
-    const handleCreateBug = async (bugData) => {
-        await fetch('http://localhost:3000/api/bugs', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ ...bugData, project_id: activeProject.id, reporter_id: user.id })
-        });
-        setShowModal(false);
-        loadBugs(activeProject.id); 
-    };
-
-    const handleStatus = async (bugId, newStatus) => {
-        await fetch(`http://localhost:3000/api/bugs/${bugId}`, {
-            method: 'PUT',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ status: newStatus })
-        });
-        loadBugs(activeProject.id);
+        // Navigate to project immediately
+        navigate(`/project/${project.id}`);
     };
 
     // FILTRARE
-    const searchResults = projects.filter(p => 
+    const searchResults = projects.filter(p =>
         p.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    // 1. Proiecte unde sunt MP (Manager)
-    const managedProjects = searchResults.filter(p => 
+    const managedProjects = searchResults.filter(p =>
         p.ProjectMembers.some(m => m.user_id === user.id && m.role === 'MP')
     );
 
-    // 2. Proiecte unde sunt TST (Tester/Contribuitor)
-    const contributionProjects = searchResults.filter(p => 
+    const contributionProjects = searchResults.filter(p =>
         p.ProjectMembers.some(m => m.user_id === user.id && m.role === 'TST')
     );
 
-    // 3. Proiecte Publice (Niciun rol)
-    const feedProjects = searchResults.filter(p => 
+    const feedProjects = searchResults.filter(p =>
         !p.ProjectMembers.some(m => m.user_id === user.id)
     );
 
-    // VEDEREA 1: LISTĂ (DASHBOARD)
-    if (view === 'list') {
-        return (
-            <div>
-                {/* ZONA ACȚIUNI (Ascunsă la search pentru claritate) */}
-                {!searchQuery && (
-                    <div className="actions-grid">
-                        <div className="action-card create-card">
-                            <h3>🚀 Proiect Nou</h3>
-                            <input placeholder="Nume Proiect" value={newProjName} onChange={e => setNewProjName(e.target.value)} />
-                            <input placeholder="Descriere scurtă" value={newProjDesc} onChange={e => setNewProjDesc(e.target.value)} />
-                            <input placeholder="Tehnologii (ex: React, Node)" value={newProjTech} onChange={e => setNewProjTech(e.target.value)} />
-                            <input placeholder="Link GitHub" value={newProjRepo} onChange={e => setNewProjRepo(e.target.value)} />
-                            <button onClick={handleCreateProject} className="btn-primary">Creează</button>
+    return (
+        <div>
+            {/* Actions Area */}
+            <div className="dashboard-actions" style={{ marginBottom: '2rem' }}>
+                {!isCreating ? (
+                    <div style={{ display: 'flex', gap: '1rem' }}>
+                        <button onClick={() => setIsCreating(true)} className="btn btn-primary">
+                            <Plus size={18} /> New Project
+                        </button>
+                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', background: 'var(--glass-bg)', padding: '5px 15px', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
+                            <Shield size={16} color="var(--text-muted)" />
+                            <input
+                                placeholder="Join with code..."
+                                value={joinCode}
+                                onChange={e => setJoinCode(e.target.value)}
+                                style={{ background: 'transparent', border: 'none', color: 'white', outline: 'none' }}
+                            />
+                            {joinCode && <button onClick={handleJoinCode} className="btn-secondary" style={{ padding: '2px 8px', fontSize: '0.7rem' }}>Join</button>}
                         </div>
-                        <div className="action-card join-card">
-                            <h3>🔑 Join MP</h3>
-                            <p>Ai un cod de la echipă?</p>
-                            <input placeholder="Cod (ex: A7X92B)" value={joinCode} onChange={e => setJoinCode(e.target.value)} />
-                            <button onClick={handleJoinCode} className="btn-secondary">Alătură-te</button>
+                    </div>
+                ) : (
+                    <div className="glass-panel" style={{ padding: '20px', maxWidth: '500px' }}>
+                        <h3 style={{ marginTop: 0 }}>Create New Project</h3>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            <input className="input-field" placeholder="Project Name" value={newProjName} onChange={e => setNewProjName(e.target.value)} />
+                            <input className="input-field" placeholder="Description" value={newProjDesc} onChange={e => setNewProjDesc(e.target.value)} />
+                            <input className="input-field" placeholder="Technologies (React, Node...)" value={newProjTech} onChange={e => setNewProjTech(e.target.value)} />
+                            <input className="input-field" placeholder="Repository URL" value={newProjRepo} onChange={e => setNewProjRepo(e.target.value)} />
+                            <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                                <button onClick={handleCreateProject} className="btn btn-primary">Create</button>
+                                <button onClick={() => setIsCreating(false)} className="btn btn-secondary">Cancel</button>
+                            </div>
                         </div>
                     </div>
                 )}
-
-                <hr className="divider" />
-
-                {/* SECȚIUNEA 1: PROIECTELE TALE (MP) - CARDURI COMPLEXE */}
-                <h2 style={{color: '#0f172a'}}>📂 Proiectele Tale (MP)</h2>
-                <div className="projects-grid">
-                    {managedProjects.length === 0 && <p style={{color:'#64748b'}}>Nu gestionezi niciun proiect.</p>}
-                    
-                    {managedProjects.map(p => {
-                        const techTags = p.technologies ? p.technologies.split(',') : [];
-
-                        return (
-                            <div key={p.id} className="project-card rich-card" onClick={() => handleOpenGarden(p)}>
-                                {/* Header */}
-                                <div className="card-header">
-                                    <h4>{p.name}</h4>
-                                    <span className="badge-mp">MP</span>
-                                </div>
-                                
-                                {/* Descriere */}
-                                <p className="proj-desc">{p.description || "Fără descriere."}</p>
-
-                                {/* Tag-uri */}
-                                <div className="tech-tags">
-                                    {techTags.map((tag, i) => (
-                                        <span key={i} className="tech-tag">{tag.trim()}</span>
-                                    ))}
-                                </div>
-
-                                {/* Avatare Echipă */}
-                                <div className="team-avatars">
-                                    {p.ProjectMembers.slice(0, 4).map(m => (
-                                        <div key={m.id} className="avatar-circle" title={m.User?.email}>
-                                            {m.User?.email ? m.User.email[0].toUpperCase() : '?'}
-                                        </div>
-                                    ))}
-                                    {p.ProjectMembers.length > 4 && <div className="avatar-circle more">+{p.ProjectMembers.length - 4}</div>}
-                                </div>
-
-                                <div className="code-box">Cod: {p.join_code}</div>
-                                <button className="btn-open">Administrează 🛠️</button>
-                            </div>
-                        );
-                    })}
-                </div>
-
-                {/* SECȚIUNEA 2: CONTRIBUȚII (TST) */}
-                <h2 style={{color: '#0f172a', marginTop: '40px'}}>🏆 Contribuțiile Tale (Tester)</h2>
-                <div className="projects-grid">
-                    {contributionProjects.length === 0 && <p style={{color:'#64748b'}}>Nu ești tester nicăieri.</p>}
-                    
-                    {contributionProjects.map(p => (
-                        <div key={p.id} className="project-card" style={{borderLeft: '5px solid #f59e0b'}} onClick={() => handleOpenGarden(p)}>
-                            <div className="card-header">
-                                <h4>{p.name}</h4>
-                                <span className="badge-tst">Tester</span>
-                            </div>
-                            <small>{p.repository}</small>
-                            <button className="btn-open" style={{background:'#f59e0b'}}>Raportează Bug 🐞</button>
-                        </div>
-                    ))}
-                </div>
-
-                {/* SECȚIUNEA 3: FEED PUBLIC */}
-                <h2 style={{color: '#0f172a', marginTop: '40px'}}>🌍 Găsește Proiecte Noi</h2>
-                <div className="projects-grid">
-                    {feedProjects.length === 0 && <p style={{color:'#64748b'}}>Niciun proiect public nou.</p>}
-                    
-                    {feedProjects.map(p => (
-                        <div key={p.id} className="project-card feed-project">
-                            <div className="card-header">
-                                <h4>{p.name}</h4>
-                            </div>
-                            <p style={{fontSize:'0.9rem', color:'#666'}}>{p.description || "Alătură-te echipei!"}</p>
-                            
-                            <button 
-                                className="btn-outline" 
-                                style={{borderColor: '#e11d48', color: '#e11d48', fontWeight: 'bold'}}
-                                onClick={() => handleQuickContribute(p)}
-                            >
-                                🐞 Vreau să ajut!
-                            </button>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        );
-    }
-
-    // VEDEREA 2: GRĂDINĂ (BUG-URI)
-    const filteredBugs = bugs.filter(b => {
-        if(activeTab === 'active') return b.status === 'Open' || b.status === 'In Progress';
-        if(activeTab === 'resolved') return b.status === 'Resolved';
-        if(activeTab === 'closed') return b.status === 'Closed';
-        return true;
-    });
-
-    const currentRole = activeProject?.ProjectMembers?.find(m => m.user_id === user.id)?.role;
-
-    return (
-        <div>
-            <button onClick={() => setView('list')} style={{background:'none', border:'none', color:'#64748b', cursor:'pointer', marginBottom:'15px', fontSize:'1rem'}}>⬅ Înapoi la Dashboard</button>
-            
-            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-                <h1 style={{color: '#0f172a', margin:0}}>{activeProject?.name} 🌿</h1>
-                <span style={{background:'#e2e8f0', padding:'5px 10px', borderRadius:'20px', fontSize:'0.8rem'}}>
-                    Rol: <b>{currentRole}</b>
-                </span>
             </div>
 
-            <div className="garden-tabs" style={{marginTop:'30px'}}>
-                <button className={`tab-btn tab-active ${activeTab === 'active' ? 'active' : ''}`} onClick={() => setActiveTab('active')}>🔴 Active</button>
-                <button className={`tab-btn tab-resolved ${activeTab === 'resolved' ? 'active' : ''}`} onClick={() => setActiveTab('resolved')}>🟢 De Verificat</button>
-                <button className={`tab-btn tab-closed ${activeTab === 'closed' ? 'active' : ''}`} onClick={() => setActiveTab('closed')}>⚪ Istoric</button>
-            </div>
+            {/* SECTIONS */}
 
-            <div className="bug-cards-container">
-                {filteredBugs.length === 0 && <p style={{textAlign:'center', width:'100%', color:'#94a3b8'}}>Nicio buburuză aici... totul e curat! ✨</p>}
-                
-                {filteredBugs.map(b => (
-                    <div key={b.id} className={`bug-card severity-${b.severity}`}>
-                        <div className="bug-header">
-                            <span style={{fontWeight:'bold'}}>{b.description.substring(0, 40)}...</span>
-                            <span title={b.severity}>{b.severity === 'Critical' ? '🔥' : (b.severity === 'Medium' ? '🐞' : '🎨')}</span>
-                        </div>
-                        <p style={{fontSize:'0.9rem', color:'#666', margin:'10px 0'}}>{b.description}</p>
-                        
-                        <div style={{display:'flex', justifyContent:'space-between', fontSize:'0.8rem', color:'#94a3b8'}}>
-                            <span>Prioritate: {b.priority}</span>
-                            {b.commit_link !== 'Fără link' && <a href={b.commit_link} target="_blank" style={{color:'#3b82f6'}}>Link 🔗</a>}
-                        </div>
-
-                        {/* BUTOANE ACȚIUNI MP (Doar pe Active) */}
-                        {activeTab === 'active' && currentRole === 'MP' && (
-                            <button className="btn-open" style={{marginTop:'15px', background:'#3b82f6'}} onClick={() => handleStatus(b.id, 'Resolved')}>🛠️ Am reparat!</button>
-                        )}
-                        
-                        {/* BUTOANE ACȚIUNI TESTER (Doar pe Resolved) */}
-                        {activeTab === 'resolved' && (
-                            <div className="status-actions">
-                                <button className="btn-confirm" onClick={() => handleStatus(b.id, 'Closed')}>✅ Confirmă</button>
-                                <button className="btn-reject" onClick={() => handleStatus(b.id, 'Open')}>❌ Refuză</button>
+            {/* 1. PROIECTE CREATE DE MINE (MANAGER) */}
+            {managedProjects.length > 0 && (
+                <>
+                    <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><ShieldCheck color="var(--primary)" /> Proiectele Mele</h2>
+                    <div className="dashboard-grid">
+                        {managedProjects.map(p => (
+                            <div key={p.id} className="glass-panel project-card" onClick={() => navigate(`/project/${p.id}`)} style={{ cursor: 'pointer' }}>
+                                <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                                    <h3 style={{ margin: 0 }}>{p.name}</h3>
+                                    <span className="tag mp">Manager</span>
+                                </div>
+                                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{p.description || "Fără descriere"}</p>
+                                <div className="card-meta">
+                                    <span>{p.technologies?.split(',')[0] || "Code"}</span>
+                                    <span>{p.ProjectMembers.length} membri</span>
+                                    <span style={{ color: '#ef4444' }}> • {p.Bugs ? p.Bugs.length : 0} bug-uri</span>
+                                </div>
                             </div>
-                        )}
+                        ))}
                     </div>
-                ))}
-            </div>
+                </>
+            )}
 
-            {/* Butonul de adăugare apare pentru oricine e membru (și MP și TST pot raporta bug-uri) */}
-            <button className="fab-btn" onClick={() => setShowModal(true)} title="Adaugă Bug">＋</button>
-            
-            {showModal && <AddBugModal onClose={() => setShowModal(false)} onSubmit={handleCreateBug} />}
+            {/* 2. PROIECTE UNDE SUNT TESTER */}
+            {contributionProjects.length > 0 && (
+                <>
+                    <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '2rem' }}><Users color="var(--success)" /> Contribui</h2>
+                    <div className="dashboard-grid">
+                        {contributionProjects.map(p => (
+                            <div key={p.id} className="glass-panel project-card" onClick={() => navigate(`/project/${p.id}`)} style={{ cursor: 'pointer', borderLeft: '3px solid var(--success)' }}>
+                                <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                                    <h3 style={{ margin: 0 }}>{p.name}</h3>
+                                    <span className="tag tst">Tester</span>
+                                </div>
+                                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{p.description || "Fără descriere"}</p>
+                                <div className="card-meta">
+                                    <span style={{ color: '#ef4444' }}>🪲 {p.Bugs ? p.Bugs.length : 0} probleme</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </>
+            )}
+
+            {/* 3. LISTA PUBLICĂ (EXPLOREAZĂ) */}
+            {feedProjects.length > 0 && (
+                <>
+                    <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '2rem' }}>🌍 Explorează</h2>
+                    <div className="dashboard-grid">
+                        {feedProjects.map(p => (
+                            <div key={p.id} className="glass-panel project-card">
+                                <h3>{p.name}</h3>
+                                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{p.description || "Alătură-te echipei!"}</p>
+                                <div style={{ fontSize: '0.8rem', marginBottom: '10px', color: 'var(--text-muted)' }}>
+                                    🐞 {p.Bugs ? p.Bugs.length : 0} probleme active
+                                </div>
+                                <button
+                                    className="btn btn-secondary"
+                                    style={{ width: '100%', marginTop: '10px', borderColor: 'var(--primary)', color: 'var(--primary)' }}
+                                    onClick={(e) => handleQuickContribute(p, e)}
+                                >
+                                    Devino Tester
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </>
+            )}
+
+            {projects.length === 0 && <p style={{ textAlign: 'center', marginTop: '50px', color: 'var(--text-muted)' }}>Nu am găsit proiecte.</p>}
         </div>
     );
 }
