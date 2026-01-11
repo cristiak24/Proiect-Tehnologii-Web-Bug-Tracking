@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Search, Menu, X, LogOut, User, Bell, Check, XCircle } from 'lucide-react';
+import { API_BASE_URL } from './config';
 
 function Navbar({ user, onLogout }) {
     const navigate = useNavigate();
@@ -13,7 +14,7 @@ function Navbar({ user, onLogout }) {
     const fetchInvitations = async () => {
         try {
             if (!user?.id) return;
-            const res = await fetch(`http://localhost:3000/api/projects/invitations?userId=${user.id}`);
+            const res = await fetch(`${API_BASE_URL}/api/projects/invitations?userId=${user.id}`);
             if (res.ok) {
                 const data = await res.json();
                 setInvitations(data);
@@ -32,7 +33,7 @@ function Navbar({ user, onLogout }) {
 
     const handleAccept = async (projectId) => {
         try {
-            const res = await fetch(`http://localhost:3000/api/projects/${projectId}/accept-invite`, {
+            const res = await fetch(`${API_BASE_URL}/api/projects/${projectId}/accept-invite`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId: user.id })
@@ -48,7 +49,7 @@ function Navbar({ user, onLogout }) {
 
     const handleDecline = async (projectId) => {
         try {
-            const res = await fetch(`http://localhost:3000/api/projects/${projectId}/decline-invite`, {
+            const res = await fetch(`${API_BASE_URL}/api/projects/${projectId}/decline-invite`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId: user.id })

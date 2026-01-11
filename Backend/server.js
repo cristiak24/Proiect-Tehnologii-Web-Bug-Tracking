@@ -28,7 +28,7 @@ initDB();
 
 // --- MODIFICARE 2: Rută pentru pagina principală (ca să nu mai dea eroare 404 pe Home) ---
 app.get('/', (req, res) => {
-    res.send('✅ Backend-ul BugTracker rulează cu succes! Accesează /api/projects pentru date.');
+    res.send('Backend-ul BugTracker rulează cu succes! Accesează /api/projects pentru date.');
 });
 
 // Rutele API

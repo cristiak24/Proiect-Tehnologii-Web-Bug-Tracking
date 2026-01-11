@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Send, User, Image as ImageIcon, X } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 /**
  * Componenta pentru afișarea și adăugarea comentariilor la un Bug.
@@ -22,7 +23,7 @@ function CommentsSection({ bugId, user }) {
     const loadComments = async () => {
         try {
             setLoading(true);
-            const res = await fetch(`http://localhost:3000/api/comments/${bugId}`);
+            const res = await fetch(`${API_BASE_URL}/api/comments/${bugId}`);
             if (res.ok) {
                 const data = await res.json();
                 setComments(data);
@@ -51,7 +52,7 @@ function CommentsSection({ bugId, user }) {
             if (file) {
                 const formData = new FormData();
                 formData.append('image', file);
-                const uploadRes = await fetch('http://localhost:3000/api/upload', {
+                const uploadRes = await fetch(`${API_BASE_URL}/api/upload`, {
                     method: 'POST',
                     body: formData
                 });
@@ -66,7 +67,7 @@ function CommentsSection({ bugId, user }) {
             }
 
             // 2. Post Comment
-            const res = await fetch('http://localhost:3000/api/comments', {
+            const res = await fetch(`${API_BASE_URL}/api/comments`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -123,9 +124,9 @@ function CommentsSection({ bugId, user }) {
                         {/* Imagine Comentariu */}
                         {c.image_path && (
                             <div style={{ marginTop: '8px' }}>
-                                <a href={`http://localhost:3000${c.image_path}`} target="_blank" rel="noreferrer">
+                                <a href={`${API_BASE_URL}${c.image_path}`} target="_blank" rel="noreferrer">
                                     <img
-                                        src={`http://localhost:3000${c.image_path}`}
+                                        src={`${API_BASE_URL}${c.image_path}`}
                                         alt="attachment"
                                         style={{ maxWidth: '200px', maxHeight: '150px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.1)' }}
                                     />

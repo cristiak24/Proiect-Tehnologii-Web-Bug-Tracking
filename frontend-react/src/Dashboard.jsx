@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Plus, Users, ShieldCheck, Shield, UserPlus, X, Bell, Check, XCircle } from 'lucide-react';
 import InviteMemberModal from './InviteMemberModal';
+import { API_BASE_URL } from './config';
 
 function Dashboard({ user }) {
     const navigate = useNavigate();
@@ -37,21 +38,21 @@ function Dashboard({ user }) {
     const loadProjects = async () => {
         try {
             // Updated to fetch only active projects for this user
-            const res = await fetch(`http://localhost:3000/api/projects?userId=${user.id}`);
+            const res = await fetch(`${API_BASE_URL}/api/projects?userId=${user.id}`);
             setProjects(await res.json());
         } catch (e) { console.error(e); }
     };
 
     const loadInvitations = async () => {
         try {
-            const res = await fetch(`http://localhost:3000/api/projects/invitations?userId=${user.id}`);
+            const res = await fetch(`${API_BASE_URL}/api/projects/invitations?userId=${user.id}`);
             if (res.ok) setInvitations(await res.json());
         } catch (e) { console.error(e); }
     };
 
     const handleAcceptInvite = async (projectId) => {
         try {
-            await fetch(`http://localhost:3000/api/projects/${projectId}/accept-invite`, {
+            await fetch(`${API_BASE_URL}/api/projects/${projectId}/accept-invite`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId: user.id })
@@ -64,7 +65,7 @@ function Dashboard({ user }) {
 
     const handleDeclineInvite = async (projectId) => {
         try {
-            await fetch(`http://localhost:3000/api/projects/${projectId}/decline-invite`, {
+            await fetch(`${API_BASE_URL}/api/projects/${projectId}/decline-invite`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId: user.id })
@@ -76,7 +77,7 @@ function Dashboard({ user }) {
     //ACȚIUNI DASHBOARD
     const handleCreateProject = async () => {
         if (!newProjName) return alert("Project name required!");
-        await fetch('http://localhost:3000/api/projects', {
+        await fetch(`${API_BASE_URL}/api/projects`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -105,7 +106,7 @@ function Dashboard({ user }) {
     };
 
     const handleJoinCode = async () => {
-        const res = await fetch('http://localhost:3000/api/projects/join-code', {
+        const res = await fetch(`${API_BASE_URL}/api/projects/join-code`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId: user.id, code: joinCode })
@@ -121,13 +122,13 @@ function Dashboard({ user }) {
 
     const handleQuickContribute = async (project, e) => {
         e.stopPropagation();
-        await fetch(`http://localhost:3000/api/projects/${project.id}/join`, {
+        await fetch(`${API_BASE_URL}/api/projects/${project.id}/join`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId: user.id })
         });
 
-        const updated = await (await fetch('http://localhost:3000/api/projects')).json();
+        const updated = await (await fetch(`${API_BASE_URL}/api/projects`)).json();
         setProjects(updated);
 
         // Navigate to project immediately

@@ -7,6 +7,7 @@ import ResolveBugModal from '../ResolveBugModal';
 import InviteMemberModal from '../InviteMemberModal';
 import CommentsSection from '../components/CommentsSection';
 import BugDetailsModal from '../BugDetailsModal';
+import { API_BASE_URL } from '../config';
 
 function ProjectDetails({ user }) {
     const { id } = useParams();
@@ -38,7 +39,7 @@ function ProjectDetails({ user }) {
     const loadData = async () => {
         try {
             setLoading(true);
-            const res = await fetch(`http://localhost:3000/api/projects/${id}`);
+            const res = await fetch(`${API_BASE_URL}/api/projects/${id}`);
             if (!res.ok) throw new Error("Proiect inexistent");
             const data = await res.json();
             setProject(data);
@@ -59,13 +60,13 @@ function ProjectDetails({ user }) {
 
     const fetchRepoInfo = async (owner, repo) => {
         try {
-            const res = await fetch(`http://localhost:3000/api/github/repo-info?owner=${owner}&repo=${repo}`);
+            const res = await fetch(`${API_BASE_URL}/api/github/repo-info?owner=${owner}&repo=${repo}`);
             if (res.ok) setRepoInfo(await res.json());
         } catch (e) { console.error("GitHub fetch failed", e); }
     };
 
     const handleCreateBug = async (bugData) => {
-        await fetch('http://localhost:3000/api/bugs', {
+        await fetch(`${API_BASE_URL}/api/bugs`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ...bugData, project_id: id, reporter_id: user.id })
@@ -76,7 +77,7 @@ function ProjectDetails({ user }) {
 
     const handleUpdateProject = async (updatedData) => {
         try {
-            const res = await fetch(`http://localhost:3000/api/projects/${id}`, {
+            const res = await fetch(`${API_BASE_URL}/api/projects/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ...updatedData, userId: user.id }) // Send userId for permission check
@@ -103,7 +104,7 @@ function ProjectDetails({ user }) {
 
     // Execută rezolvarea după confirmarea din modal
     const handleResolveSubmit = async (commitLink, comment) => {
-        await fetch(`http://localhost:3000/api/bugs/${bugToResolve}`, {
+        await fetch(`${API_BASE_URL}/api/bugs/${bugToResolve}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -115,7 +116,7 @@ function ProjectDetails({ user }) {
 
         // Adăugăm comentariul dacă există
         if (comment) {
-            await fetch(`http://localhost:3000/api/bugs/${bugToResolve}/comments`, {
+            await fetch(`${API_BASE_URL}/api/bugs/${bugToResolve}/comments`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -142,7 +143,7 @@ function ProjectDetails({ user }) {
             return;
         }
 
-        await fetch(`http://localhost:3000/api/bugs/${bugId}`, {
+        await fetch(`${API_BASE_URL}/api/bugs/${bugId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: newStatus })
@@ -156,7 +157,7 @@ function ProjectDetails({ user }) {
     };
 
     const handleAssign = async (bugId, userId) => {
-        await fetch(`http://localhost:3000/api/bugs/${bugId}`, {
+        await fetch(`${API_BASE_URL}/api/bugs/${bugId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ assigned_to: userId })
@@ -173,7 +174,7 @@ function ProjectDetails({ user }) {
     const handleAddCollaborator = async (email) => {
         try {
             setIsAddingCollab(true);
-            const res = await fetch(`http://localhost:3000/api/projects/${id}/invite`, {
+            const res = await fetch(`${API_BASE_URL}/api/projects/${id}/invite`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, userId: user.id })

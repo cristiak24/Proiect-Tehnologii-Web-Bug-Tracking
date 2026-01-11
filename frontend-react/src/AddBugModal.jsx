@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { API_BASE_URL } from './config';
 import { X, AlertCircle, AlertTriangle, Flame, Bug } from 'lucide-react';
 
 function AddBugModal({ onClose, onSubmit }) {
@@ -29,7 +30,7 @@ function AddBugModal({ onClose, onSubmit }) {
             const formData = new FormData();
             formData.append('image', file);
             try {
-                const res = await fetch('http://localhost:3000/api/upload', {
+                const res = await fetch(`${API_BASE_URL}/api/upload`, {
                     method: 'POST',
                     body: formData
                 });

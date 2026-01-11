@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { X, Bug, User, MessageSquare, ExternalLink, Calendar, AlertTriangle, Shield, CheckCircle } from 'lucide-react';
 import CommentsSection from './components/CommentsSection';
+import { API_BASE_URL } from './config';
 
 function BugDetailsModal({ bug, user, userRole, onClose, onUpdateStatus, onAssign, project }) {
     const [isCommentsOpen, setIsCommentsOpen] = useState(true);
@@ -105,9 +106,9 @@ function BugDetailsModal({ bug, user, userRole, onClose, onUpdateStatus, onAssig
                             {bug.image_path && (
                                 <div style={{ marginTop: '20px', borderTop: '1px solid var(--glass-border)', paddingTop: '15px' }}>
                                     <label style={{ fontSize: '0.9rem', fontWeight: 'bold', display: 'block', marginBottom: '10px' }}>Imagine Atașată</label>
-                                    <a href={`http://localhost:3000${bug.image_path}`} target="_blank" rel="noreferrer">
+                                    <a href={`${API_BASE_URL}${bug.image_path}`} target="_blank" rel="noreferrer">
                                         <img
-                                            src={`http://localhost:3000${bug.image_path}`}
+                                            src={`${API_BASE_URL}${bug.image_path}`}
                                             alt="Bug Attachment"
                                             style={{ maxWidth: '100%', maxHeight: '400px', borderRadius: '8px', border: '1px solid var(--glass-border)' }}
                                         />

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { User, Mail, Github, Save } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 function MyProfile({ user }) {
     const [formData, setFormData] = useState({
@@ -15,7 +16,7 @@ function MyProfile({ user }) {
     const fetchInvitations = async () => {
         if (!user?.id) return;
         try {
-            const res = await fetch(`http://localhost:3000/api/projects/invitations?userId=${user.id}`);
+            const res = await fetch(`${API_BASE_URL}/api/projects/invitations?userId=${user.id}`);
             if (res.ok) setInvitations(await res.json());
         } catch (e) { console.error(e); }
     };
@@ -26,7 +27,7 @@ function MyProfile({ user }) {
 
     const handleAccept = async (projectId) => {
         try {
-            await fetch(`http://localhost:3000/api/projects/${projectId}/accept-invite`, {
+            await fetch(`${API_BASE_URL}/api/projects/${projectId}/accept-invite`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId: user.id })
@@ -38,7 +39,7 @@ function MyProfile({ user }) {
 
     const handleDecline = async (projectId) => {
         try {
-            await fetch(`http://localhost:3000/api/projects/${projectId}/decline-invite`, {
+            await fetch(`${API_BASE_URL}/api/projects/${projectId}/decline-invite`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId: user.id })
@@ -68,7 +69,7 @@ function MyProfile({ user }) {
             // The user asked for "My Profile" feature, implying I should build the UI.
             // I'll assume I need to add the backend route too.
 
-            const res = await fetch('http://localhost:3000/api/auth/me', {
+            const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)

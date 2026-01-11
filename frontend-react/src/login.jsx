@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { API_BASE_URL } from './config';
 
 function Login({ onLoginSuccess }) {
     // Aici tin minte daca userul vrea sa se logheze sau sa isi faca cont
@@ -27,7 +28,7 @@ function Login({ onLoginSuccess }) {
 
         try {
             // Fac request-ul propriu-zisa catre backend (pe portul 3000)
-            const response = await fetch(`http://localhost:3000${endpoint}`, {
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
