@@ -3,7 +3,7 @@ const cors = require('cors');
 const path = require('path');
 const { initDB } = require('./database');
 
-// Import rutele pe care le-am facut in folderul routes
+// Import rutele
 const authRoutes = require('./routes/auth');
 const projectRoutes = require('./routes/projects');
 const bugRoutes = require('./routes/bugs');
@@ -12,25 +12,35 @@ const commentRoutes = require('./routes/comments');
 const uploadRoutes = require('./routes/upload');
 
 const app = express();
-const PORT = 3000;
 
-// Middleware-uri standard
-app.use(cors()); // Ca sa mearga request-urile de pe frontend (vite pe alt port)
-app.use(express.json()); // Ca sa tinem minte sa parsam JSON-ul din request body
+// --- MODIFICARE 1: Port Dinamic ---
+// Luăm portul de la Render SAU folosim 3000 dacă suntem local
+const PORT = process.env.PORT || 3000;
 
-// Aici servesc fisierele statice, pt imaginile uploadate
+app.use(cors()); 
+app.use(express.json()); 
+
+// Servire fișiere statice (uploads)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Dau drumul la baza de date
+// Inițializare DB
 initDB();
 
-// Aici leg rutele de aplicatie
-app.use('/api', authRoutes); // Tot ce tine de login/register
-app.use('/api/projects', projectRoutes); // Pentru proiecte
-app.use('/api/bugs', bugRoutes); // Pentru bug-uri
-app.use('/api/github', githubRoutes); // Proxy-ul pt API-ul de GitHub
-app.use('/api/comments', commentRoutes); // Sectiunea de comentarii
-app.use('/api/upload', uploadRoutes); // Upload de poze
+// --- MODIFICARE 2: Rută pentru pagina principală (ca să nu mai dea eroare 404 pe Home) ---
+app.get('/', (req, res) => {
+    res.send('✅ Backend-ul BugTracker rulează cu succes! Accesează /api/projects pentru date.');
+});
 
-// Pornesc serverul efectiv
-app.listen(PORT, () => console.log(`Server la http://localhost:${PORT}`));
+// Rutele API
+app.use('/api', authRoutes);
+app.use('/api/projects', projectRoutes);
+app.use('/api/bugs', bugRoutes);
+app.use('/api/github', githubRoutes);
+app.use('/api/comments', commentRoutes);
+app.use('/api/upload', uploadRoutes);
+
+// --- Pornire Server ---
+// Folosim variabila PORT definită mai sus
+app.listen(PORT, () => {
+    console.log(`Serverul rulează pe portul ${PORT}`);
+});
