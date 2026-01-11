@@ -12,10 +12,15 @@ function EditProjectModal({ project, onClose, onSubmit }) {
         if (!name.trim()) return alert("Numele proiectului este obligatoriu!");
 
         setIsSaving(true);
+        let formattedRepo = repo;
+        if (formattedRepo && !formattedRepo.startsWith('http://') && !formattedRepo.startsWith('https://')) {
+            formattedRepo = `https://${formattedRepo}`;
+        }
+
         await onSubmit({
             name,
             description: desc,
-            repository: repo,
+            repository: formattedRepo,
             technologies: tech
         });
         setIsSaving(false);

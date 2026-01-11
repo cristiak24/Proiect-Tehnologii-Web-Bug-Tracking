@@ -38,9 +38,11 @@ function Dashboard({ user }) {
     const loadProjects = async () => {
         try {
             // Updated to fetch only active projects for this user
-            const res = await fetch(`${API_BASE_URL}/api/projects?userId=${user.id}`);
-            setProjects(await res.json());
-        } catch (e) { console.error(e); }
+            const res = await fetch(`${API_BASE_URL}/api/projects`);
+            const data = await res.json();
+            console.log("Projects fetched from API:", data);
+            setProjects(data);
+        } catch (e) { console.error("Error loading projects:", e); }
     };
 
     const loadInvitations = async () => {

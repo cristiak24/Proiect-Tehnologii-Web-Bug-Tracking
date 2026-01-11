@@ -50,13 +50,19 @@ function AddBugModal({ onClose, onSubmit }) {
             }
         }
 
+        // Format formatting
+        let formattedLink = link;
+        if (formattedLink && !formattedLink.startsWith('http://') && !formattedLink.startsWith('https://')) {
+            formattedLink = `https://${formattedLink}`;
+        }
+
         // 2. Submit Bug
         onSubmit({
             title: title,
             description: desc,
             severity: severity,
             priority: priority,
-            commit_link: link || 'Fără link',
+            commit_link: formattedLink || 'Fără link',
             image_path: imagePath // Send path
         });
         setIsUploading(false);
