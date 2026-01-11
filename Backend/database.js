@@ -1,97 +1,114 @@
 const { Sequelize, DataTypes, Op } = require('sequelize');
 
-// 1. CONFIGURARE BAZĂ DE DATE
-// Se folosește SQLite pentru simplitate (fișier local)
-const sequelize = new Sequelize({
-    dialect: 'sqlite',
-    storage: './bugtracker.db',
-    logging: false // Oprește log-urile SQL în consolă pentru claritate
+// --- MODIFICARE 1: Conexiunea la Neon (PostgreSQL) ---
+
+// 1. Încărcăm variabilele de mediu
+// Dacă fișierul se numește fix ".env", nu e nevoie de { path: ... }
+require('dotenv').config(); 
+
+// 2. DEFINIM connectionString (Aici era eroarea, lipsea linia asta!)
+const connectionString = process.env.DATABASE_URL;
+
+// Opțional: Verificăm să nu fie gol, ca să nu ne chinuim cu erori ciudate
+if (!connectionString) {
+    console.error("EROARE: Nu am găsit DATABASE_URL! Verifică fișierul .env sau setările din Render.");
+}
+
+const sequelize = new Sequelize(connectionString, {
+    dialect: 'postgres', 
+    logging: false,
+    dialectOptions: {
+        ssl: {
+            require: true,
+            rejectUnauthorized: false 
+        }
+    }
 });
 
-// 2. DEFINIRE MODELE (Tabele)
 
-// Model Utilizator
+// --- DEFINIREA MODELELOR (Ramane la fel) ---
+
+// Tabela pentru useri
 const User = sequelize.define('User', {
     email: { type: DataTypes.STRING, unique: true, allowNull: false },
-    password: { type: DataTypes.STRING, allowNull: false }, // În producție ar trebui hash-uită!
+    password: { type: DataTypes.STRING, allowNull: false },
     name: { type: DataTypes.STRING, defaultValue: 'Student' }
 });
 
-// Model Proiect
+// Tabela pentru proiecte
 const Project = sequelize.define('Project', {
     name: { type: DataTypes.STRING, allowNull: false },
-    repository: { type: DataTypes.STRING }, // Link către GitHub
-    owner_id: { type: DataTypes.INTEGER }, // ID-ul celui care a creat proiectul
-    join_code: { type: DataTypes.STRING, unique: true }, // Cod unic pentru alăturare
+    repository: { type: DataTypes.STRING },
+    owner_id: { type: DataTypes.INTEGER },
+    join_code: { type: DataTypes.STRING, unique: true },
     description: { type: DataTypes.STRING },
     technologies: { type: DataTypes.STRING }
 });
 
-// Model Membru Proiect (Tabelă de legătură Many-to-Many cu roluri)
+// Tabela de legatura Many-to-Many
 const ProjectMember = sequelize.define('ProjectMember', {
     project_id: { type: DataTypes.INTEGER },
     user_id: { type: DataTypes.INTEGER },
-    role: { type: DataTypes.STRING } // 'MP' (Membru Proiect) sau 'TST' (Tester)
+    role: { type: DataTypes.STRING },
+    status: { type: DataTypes.STRING, defaultValue: 'pending' }
 });
 
-// Model Bug
+// Tabela principala pentru bug-uri
 const Bug = sequelize.define('Bug', {
     title: { type: DataTypes.STRING, allowNull: false, defaultValue: 'Untitled Bug' },
     description: { type: DataTypes.STRING },
-    severity: { type: DataTypes.STRING }, // Low, Medium, Critical
-    priority: { type: DataTypes.STRING }, // High (default la creare momentan)
-    commit_link: { type: DataTypes.STRING }, // Link opțional către commit
-    image_path: { type: DataTypes.STRING }, // Link către imagine
-    status: { type: DataTypes.STRING, defaultValue: 'Open' }, // Open, In Progress, Resolved, Closed
-    fix_link: { type: DataTypes.STRING }, // Link către PR-ul care rezolvă
+    severity: { type: DataTypes.STRING },
+    priority: { type: DataTypes.STRING },
+    commit_link: { type: DataTypes.STRING },
+    image_path: { type: DataTypes.STRING },
+    status: { type: DataTypes.STRING, defaultValue: 'Open' },
+    fix_link: { type: DataTypes.STRING },
     project_id: { type: DataTypes.INTEGER },
-    reporter_id: { type: DataTypes.INTEGER }, // Cine a raportat
-    assigned_to: { type: DataTypes.INTEGER } // Cine rezolvă (MP)
+    reporter_id: { type: DataTypes.INTEGER },
+    assigned_to: { type: DataTypes.INTEGER }
 });
 
-// Model Comentariu (NOU - Faza 2)
+// Tabela pentru comentarii
 const Comment = sequelize.define('Comment', {
     text: { type: DataTypes.STRING, allowNull: false },
-    image_path: { type: DataTypes.STRING }, // Imagine opțională
+    image_path: { type: DataTypes.STRING },
     project_id: { type: DataTypes.INTEGER },
     bug_id: { type: DataTypes.INTEGER },
     user_id: { type: DataTypes.INTEGER }
 });
 
-// 3. RELAȚII ÎNTRE TABELE
+// --- RELATII (Raman la fel) ---
 
-// Un Proiect are mulți Membri
 Project.hasMany(ProjectMember, { foreignKey: 'project_id' });
-ProjectMember.belongsTo(User, { foreignKey: 'user_id' }); // Putem accesa datele userului din membru
+ProjectMember.belongsTo(User, { foreignKey: 'user_id' });
 
-// Un Proiect are multe Bug-uri
 Project.hasMany(Bug, { foreignKey: 'project_id' });
 Bug.belongsTo(Project, { foreignKey: 'project_id' });
 
-// Bug-ul aparține unui raportor (User)
 Bug.belongsTo(User, { as: 'Reporter', foreignKey: 'reporter_id' });
 Bug.belongsTo(User, { as: 'Assignee', foreignKey: 'assigned_to' });
 
-// Comentarii
 Bug.hasMany(Comment, { foreignKey: 'bug_id' });
-Comment.belongsTo(User, { foreignKey: 'user_id' }); // Ca să știm cine a scris
+Comment.belongsTo(User, { foreignKey: 'user_id' });
 
-// 4. INIȚIALIZARE ȘI POPULARE (SEED)
+// --- INITIALIZARE DB (Modificata pentru Postgres) ---
+
 async function initDB() {
     try {
-        // Disable foreign key checks to allow table recreation/alteration
-        await sequelize.query('PRAGMA foreign_keys = OFF;');
+        // --- MODIFICARE 2: Am scos PRAGMA (nu merge pe Postgres) ---
+        
+        // Testam conexiunea intai
+        await sequelize.authenticate();
+        console.log('>> Conexiunea cu Neon DB a reusit!');
 
-        await sequelize.sync({ alter: true }); // 'alter: true' actualizează structura
+        // Sincronizam modelele (alter: true va actualiza tabelele din Neon)
+        await sequelize.sync({ alter: true });
 
-        // Re-enable foreign key checks
-        await sequelize.query('PRAGMA foreign_keys = ON;');
+        console.log(">> Gata, baza de date e sincronizata.");
 
-        console.log(">> Baza de Date Sincronizată.");
-
-        // Verificăm dacă e goală și adăugăm date de start
+        // Verificam daca e goala si bagam date de test
         if (await User.count() === 0) {
-            console.log(">> Se introduc date de test...");
+            console.log(">> Baza e goala, bag date de test...");
             const mp = await User.create({ email: 'mp@test.com', password: '1234', name: 'Membru Proiect' });
             const tst = await User.create({ email: 'tst@test.com', password: '1234', name: 'Tester' });
 
@@ -113,9 +130,11 @@ async function initDB() {
                 description: 'Chat în timp real pentru studenți.',
                 technologies: 'Socket.io, Express'
             });
-            console.log(">> Date de test create cu succes!");
+            console.log(">> Am terminat cu datele de test!");
         }
-    } catch (err) { console.error("Eroare la inițializare DB:", err); }
+    } catch (err) { 
+        console.error("A crapat la initializare DB:", err); 
+    }
 }
 
 module.exports = { sequelize, User, Project, ProjectMember, Bug, Comment, Op, initDB };

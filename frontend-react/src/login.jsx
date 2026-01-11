@@ -1,32 +1,32 @@
 import { useState } from 'react';
 
 function Login({ onLoginSuccess }) {
-    // Stare (Switch între Login și Register)
+    // Aici tin minte daca userul vrea sa se logheze sau sa isi faca cont
     const [isRegistering, setIsRegistering] = useState(false);
 
-    // Datele formularului
+    // Variabilele pentru input-uri
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-    // Mesaje de feedback
+    // Aici tin minte erorile sau mesajul de succes ca sa le afisez
     const [error, setError] = useState('');
     const [successMsg, setSuccessMsg] = useState('');
 
-    //TRIMITERE DATE CĂTRE SERVER 
+    // Functia care trimite datele la server cand dau click pe buton
     const handleSubmit = async () => {
-        // Resetăm erorile vechi înainte de a trimite
+        // Fac curat la mesaje inainte sa incerc din nou
         setError('');
         setSuccessMsg('');
 
-        // Pregătim datele
+        // Vad unde trebuie sa trimit datele: la login sau la register
         const endpoint = isRegistering ? '/api/register' : '/api/login';
         const payload = isRegistering
             ? { name, email, password }
             : { email, password };
 
         try {
-            // Trimitem totul la Backend ("Polițistul") și îl lăsăm pe el să verifice
+            // Fac request-ul propriu-zisa catre backend (pe portul 3000)
             const response = await fetch(`http://localhost:3000${endpoint}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -35,20 +35,20 @@ function Login({ onLoginSuccess }) {
             const data = await response.json();
 
             if (response.ok) {
-                // SUCCES
+                // Daca e de bine
                 if (isRegistering) {
-                    setSuccessMsg("Cont creat cu succes! Conectează-te acum.");
+                    setSuccessMsg("Gata, contul e facut! Acum poti sa intri pe el.");
                     setIsRegistering(false);
-                    setPassword('');
+                    setPassword(''); // Ii sterg parola sa nu ramana acolo
                 } else {
-                    onLoginSuccess(data.user);
+                    onLoginSuccess(data.user); // Il las sa intre in aplicatie
                 }
             } else {
-                // EROARE (Aici afișăm exact ce ne-a zis backend-ul: "Parola prea scurtă", etc.)
-                setError(data.error || 'A apărut o eroare.');
+                // Daca a dat eroare serverul (de ex: parola gresita)
+                setError(data.error || 'Ceva n-a mers bine.');
             }
         } catch (err) {
-            setError('Nu pot contacta serverul.');
+            setError('Nu am putut sa vorbesc cu serverul. E pornit?');
         }
     };
 

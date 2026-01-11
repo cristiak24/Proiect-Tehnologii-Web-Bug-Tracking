@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Github, Star, GitFork, ArrowLeft, Bug, CheckCircle, Clock, ChevronDown, ChevronUp, MessageSquare, Users, UserPlus, Maximize2 } from 'lucide-react';
+import { Github, Star, GitFork, ArrowLeft, Bug, CheckCircle, Clock, ChevronDown, ChevronUp, MessageSquare, Users, UserPlus, Maximize2, Edit2 } from 'lucide-react';
 import AddBugModal from '../AddBugModal';
+import EditProjectModal from '../EditProjectModal';
+import ResolveBugModal from '../ResolveBugModal';
+import InviteMemberModal from '../InviteMemberModal';
 import CommentsSection from '../components/CommentsSection';
 import BugDetailsModal from '../BugDetailsModal';
 
@@ -13,10 +16,20 @@ function ProjectDetails({ user }) {
     const [repoInfo, setRepoInfo] = useState(null);
     const [activeTab, setActiveTab] = useState('active'); // active, resolved, closed
     const [showModal, setShowModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false); // Edit Modal State
+    const [showResolveModal, setShowResolveModal] = useState(false); // Resolve Modal State
+    const [bugToResolve, setBugToResolve] = useState(null); // Bug id to resolve
+
     const [loading, setLoading] = useState(true);
-    const [expandedBug, setExpandedBug] = useState(null); // ID-ul bug-ului deschis pentru comentarii
     const [showTeam, setShowTeam] = useState(false); // Toggle Team View
     const [selectedBug, setSelectedBug] = useState(null); // Bug-ul selectat pentru modal
+    const [expandedBug, setExpandedBug] = useState(null); // Comments toggler
+
+    // NEW: Collaborator Modal State
+    const [showInviteModal, setShowInviteModal] = useState(false);
+    const [isAddingCollab, setIsAddingCollab] = useState(false);
+
+
 
     useEffect(() => {
         loadData();
@@ -61,22 +74,82 @@ function ProjectDetails({ user }) {
         loadData();
     };
 
+    const handleUpdateProject = async (updatedData) => {
+        try {
+            const res = await fetch(`http://localhost:3000/api/projects/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...updatedData, userId: user.id }) // Send userId for permission check
+            });
+
+            if (res.ok) {
+                setShowEditModal(false);
+                loadData(); // Reload data to show updates
+            } else {
+                const err = await res.json();
+                alert(err.error || "Eroare la actualizare!");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Eroare de rețea!");
+        }
+    };
+
+    // Inițiază procesul de rezolvare
+    const initiateResolve = (bugId) => {
+        setBugToResolve(bugId);
+        setShowResolveModal(true);
+    };
+
+    // Execută rezolvarea după confirmarea din modal
+    const handleResolveSubmit = async (commitLink, comment) => {
+        await fetch(`http://localhost:3000/api/bugs/${bugToResolve}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                status: 'Resolved',
+                fix_link: commitLink || 'Nespecificat',
+                // Putem adăuga un mic comentariu automat sau îl lăsăm așa momentan
+            })
+        });
+
+        // Adăugăm comentariul dacă există
+        if (comment) {
+            await fetch(`http://localhost:3000/api/bugs/${bugToResolve}/comments`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user_id: user.id,
+                    content: `[RESOLUTION NOTE]: ${comment}`
+                })
+            });
+        }
+
+        setShowResolveModal(false);
+        setBugToResolve(null);
+
+        // Update local state if needed
+        if (selectedBug && selectedBug.id === bugToResolve) {
+            setSelectedBug(prev => ({ ...prev, status: 'Resolved', fix_link: commitLink }));
+        }
+        loadData();
+    };
+
+    // Pentru alte statusuri (ex: Closed)
     const handleStatus = async (bugId, newStatus) => {
-        let fixLink = null;
         if (newStatus === 'Resolved') {
-            fixLink = prompt("Introduce link-ul către commit/PR rezolvare (opțional):");
-            if (fixLink === null) return; // User pressed Cancel
+            initiateResolve(bugId);
+            return;
         }
 
         await fetch(`http://localhost:3000/api/bugs/${bugId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: newStatus, fix_link: fixLink })
+            body: JSON.stringify({ status: newStatus })
         });
 
-        // Dacă suntem în modal, actualizăm și bug-ul selectat local pt UI instant
         if (selectedBug && selectedBug.id === bugId) {
-            setSelectedBug(prev => ({ ...prev, status: newStatus, fix_link: fixLink }));
+            setSelectedBug(prev => ({ ...prev, status: newStatus }));
         }
 
         loadData();
@@ -96,16 +169,48 @@ function ProjectDetails({ user }) {
         loadData();
     };
 
+    // NEW: Add Collaborator Logic (Via Modal)
+    const handleAddCollaborator = async (email) => {
+        try {
+            setIsAddingCollab(true);
+            const res = await fetch(`http://localhost:3000/api/projects/${id}/invite`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, userId: user.id })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                alert("Utilizator adăugat cu succes!");
+                setShowInviteModal(false);
+                loadData(); // Refresh team list
+            } else {
+                alert(data.error || "Eroare la adăugare!");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Eroare de rețea!");
+        } finally {
+            setIsAddingCollab(false);
+        }
+    };
+
+    // Explicit Edit Handler for Debugging
+    const handleEditClick = () => {
+        console.log("Deschidere modal editare...");
+        setShowEditModal(true);
+    };
+
     const toggleComments = (bugId) => {
         if (expandedBug === bugId) setExpandedBug(null);
         else setExpandedBug(bugId);
     };
 
-    if (loading) return <div style={{ padding: '50px', display: 'flex', justifyContent: 'center' }}>Se încarcă...</div>;
+    if (loading) return <div style={{ color: 'white', textAlign: 'center', padding: '50px' }}>Se încarcă proiectul...</div>;
     if (!project) return null;
 
-    const currentMember = project.ProjectMembers.find(m => m.user_id === user.id);
-    const userRole = currentMember?.role;
+    const userMember = project.ProjectMembers.find(m => m.user_id === user.id);
+    const userRole = userMember ? userMember.role : 'GUEST';
     const bugs = project.Bugs || [];
     const filteredBugs = bugs.filter(b => {
         if (activeTab === 'active') return ['Open', 'In Progress'].includes(b.status);
@@ -120,44 +225,81 @@ function ProjectDetails({ user }) {
 
     return (
         <div className="project-details">
-            {/* Header */}
-            <div style={{ marginBottom: '2rem' }}>
-                <button onClick={() => navigate('/')} className="btn-secondary" style={{ marginBottom: '10px', padding: '5px 10px', fontSize: '0.8rem' }}>
-                    <ArrowLeft size={14} /> Back
-                </button>
+            <button onClick={() => navigate('/')} className="btn-secondary" style={{ marginBottom: '20px', padding: '5px 10px', fontSize: '0.8rem' }}>
+                <ArrowLeft size={14} /> Back
+            </button>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                    <div>
-                        <h1 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            {project.name}
-                            {repoInfo && <a href={project.repository.startsWith('http') ? project.repository : `https://${project.repository}`} target="_blank" style={{ color: 'var(--text-muted)' }}><Github size={20} /></a>}
-                        </h1>
-                        <p style={{ color: 'var(--text-muted)', marginTop: '5px' }}>{project.description}</p>
+            <div className="project-header">
+                <div style={{ flex: 1 }}> {/* Left Side */}
+                    <h1 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        {project.name}
+                    </h1>
+                    <div style={{ marginTop: '15px' }}>
+                        {/* DESCRIPTION BOX */}
+                        <div style={{ background: 'rgba(255,255,255,0.03)', padding: '15px', borderRadius: '8px', borderLeft: '3px solid var(--primary)', marginBottom: '15px' }}>
+                            <p style={{ margin: 0, lineHeight: '1.5', color: 'var(--text-muted)' }}>{project.description || "Fără descriere."}</p>
+                        </div>
 
+                        {/* GIT HUB ACTION BUTTON */}
                         {repoInfo && (
-                            <div style={{ display: 'flex', gap: '15px', marginTop: '10px', fontSize: '0.9rem' }}>
-                                <span style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#fbbf24' }}><Star size={14} /> {repoInfo.stargazers_count} Stars</span>
-                                <span style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--text-muted)' }}><GitFork size={14} /> {repoInfo.forks_count} Forks</span>
-                            </div>
+                            <a
+                                href={project.repository.startsWith('http') ? project.repository : `https://${project.repository}`}
+                                target="_blank"
+                                className="btn-secondary"
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', textDecoration: 'none', color: 'white', border: '1px solid var(--glass-border)' }}
+                            >
+                                <Github size={18} /> Vezi Codul pe GitHub
+                            </a>
                         )}
                     </div>
 
-                    <div style={{ textAlign: 'right', display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    {repoInfo && (
+                        <div className="project-stats" style={{ display: 'flex', gap: '20px', marginTop: '15px', fontSize: '1rem' }}>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#fbbf24' }}><Star size={16} /> {repoInfo.stargazers_count} Stars</span>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)' }}><GitFork size={16} /> {repoInfo.forks_count} Forks</span>
+                        </div>
+                    )}
+                </div>
+
+                <div className="project-actions"> {/* Right Side */}
+
+                    {/* BUTTON GROUP - CLEARLY SEPARATED */}
+                    <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                        {userRole === 'MP' && (
+                            <button
+                                className="btn-secondary"
+                                onClick={handleEditClick}
+                                style={{ display: 'flex', alignItems: 'center', gap: '8px', zIndex: 10 }}
+                            >
+                                <Edit2 size={18} /> Editare
+                            </button>
+                        )}
+
                         <button
                             className="btn-secondary"
                             onClick={() => setShowTeam(!showTeam)}
-                            style={{ padding: '8px 12px', fontSize: '0.9rem' }}
+                            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
                         >
-                            <Users size={16} /> {showTeam ? 'Ascunde Echipa' : 'Vezi Echipa'}
+                            <Users size={18} /> {showTeam ? 'Ascunde Echipa' : 'Vezi Echipa'}
                         </button>
 
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                            <span className={`tag ${userRole === 'MP' ? 'mp' : 'tst'}`} style={{ fontSize: '1rem', padding: '5px 15px' }}>
-                                {userRole === 'MP' ? 'Manager' : 'Tester'}
-                            </span>
-                            <div style={{ marginTop: '5px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                                Cod: <span style={{ fontFamily: 'monospace', background: 'rgba(255,255,255,0.1)', padding: '2px 5px', borderRadius: '4px' }}>{project.join_code}</span>
-                            </div>
+                        {userRole === 'MP' && (
+                            <button
+                                className="btn-primary"
+                                onClick={() => setShowInviteModal(true)}
+                                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                            >
+                                <UserPlus size={18} /> Adaugă Membru
+                            </button>
+                        )}
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                        <span className={`tag ${userRole === 'MP' ? 'mp' : 'tst'}`} style={{ fontSize: '1rem', padding: '5px 15px' }}>
+                            {userRole === 'MP' ? 'Manager' : 'Tester'}
+                        </span>
+                        <div style={{ marginTop: '5px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                            Cod: <span style={{ fontFamily: 'monospace', background: 'rgba(255,255,255,0.1)', padding: '2px 5px', borderRadius: '4px' }}>{project.join_code}</span>
                         </div>
                     </div>
                 </div>
@@ -346,6 +488,14 @@ function ProjectDetails({ user }) {
                         </div>
                     )}
                 </div>
+                {/* Invite Modal */}
+                {showInviteModal && (
+                    <InviteMemberModal
+                        onClose={() => setShowInviteModal(false)}
+                        onInvite={handleAddCollaborator}
+                        isLoading={isAddingCollab}
+                    />
+                )}
             </div>
 
             {/* Floating Action Button */}
@@ -365,19 +515,38 @@ function ProjectDetails({ user }) {
 
             {showModal && <AddBugModal onClose={() => setShowModal(false)} onSubmit={handleCreateBug} />}
 
+            {
+                showResolveModal && (
+                    <ResolveBugModal
+                        onClose={() => setShowResolveModal(false)}
+                        onSubmit={handleResolveSubmit}
+                    />
+                )
+            }
+
             {/* Bug Details Modal */}
-            {selectedBug && (
-                <BugDetailsModal
-                    bug={selectedBug}
-                    user={user}
-                    userRole={userRole}
+            {
+                selectedBug && (
+                    <BugDetailsModal
+                        bug={selectedBug}
+                        user={user}
+                        userRole={userRole}
+                        project={project}
+                        onClose={() => setSelectedBug(null)}
+                        onUpdateStatus={handleStatus}
+                        onAssign={handleAssign}
+                    />
+                )
+            }
+            {/* Edit Project Modal */}
+            {showEditModal && (
+                <EditProjectModal
                     project={project}
-                    onClose={() => setSelectedBug(null)}
-                    onUpdateStatus={handleStatus}
-                    onAssign={handleAssign}
+                    onClose={() => setShowEditModal(false)}
+                    onSubmit={handleUpdateProject}
                 />
             )}
-        </div>
+        </div >
     );
 }
 

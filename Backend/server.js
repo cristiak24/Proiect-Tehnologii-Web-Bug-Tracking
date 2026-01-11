@@ -3,7 +3,7 @@ const cors = require('cors');
 const path = require('path');
 const { initDB } = require('./database');
 
-// Importare Rute
+// Import rutele pe care le-am facut in folderul routes
 const authRoutes = require('./routes/auth');
 const projectRoutes = require('./routes/projects');
 const bugRoutes = require('./routes/bugs');
@@ -14,21 +14,23 @@ const uploadRoutes = require('./routes/upload');
 const app = express();
 const PORT = 3000;
 
-app.use(cors());
-app.use(express.json());
+// Middleware-uri standard
+app.use(cors()); // Ca sa mearga request-urile de pe frontend (vite pe alt port)
+app.use(express.json()); // Ca sa tinem minte sa parsam JSON-ul din request body
 
-// Serve Static Files (Uploads)
+// Aici servesc fisierele statice, pt imaginile uploadate
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Pornire Bază de Date
+// Dau drumul la baza de date
 initDB();
 
-// Rute API
-app.use('/api', authRoutes); // /api/login, /api/register
-app.use('/api/projects', projectRoutes); // /api/projects...
-app.use('/api/bugs', bugRoutes); // /api/bugs...
-app.use('/api/github', githubRoutes); // /api/github...
-app.use('/api/comments', commentRoutes); // /api/comments...
-app.use('/api/upload', uploadRoutes); // /api/upload
+// Aici leg rutele de aplicatie
+app.use('/api', authRoutes); // Tot ce tine de login/register
+app.use('/api/projects', projectRoutes); // Pentru proiecte
+app.use('/api/bugs', bugRoutes); // Pentru bug-uri
+app.use('/api/github', githubRoutes); // Proxy-ul pt API-ul de GitHub
+app.use('/api/comments', commentRoutes); // Sectiunea de comentarii
+app.use('/api/upload', uploadRoutes); // Upload de poze
 
+// Pornesc serverul efectiv
 app.listen(PORT, () => console.log(`Server la http://localhost:${PORT}`));
