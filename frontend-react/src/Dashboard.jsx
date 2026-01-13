@@ -140,6 +140,12 @@ function Dashboard({ user }) {
     };
 
     // FILTRARE
+    console.log("DEBUG: User ID:", user?.id);
+    console.log("DEBUG: Projects Count:", projects.length);
+    if (projects.length > 0) {
+        console.log("DEBUG: Sample Project Members:", projects[0].ProjectMembers);
+    }
+
     const searchResults = projects.filter(p =>
         p.name.toLowerCase().includes(searchQuery.toLowerCase())
     );

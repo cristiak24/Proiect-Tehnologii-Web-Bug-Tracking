@@ -157,32 +157,64 @@ router.post('/', async (req, res) => {
 // JOIN CU COD
 router.post('/join-code', async (req, res) => {
     try {
+        console.log(`[POST /join-code] Request Body:`, req.body);
         const { userId, code } = req.body;
-        const project = await Project.findOne({ where: { join_code: code } });
 
-        if (!project) return res.status(404).json({ error: "Cod invalid!" });
+        if (!code) return res.status(400).json({ error: "Code is required" });
+
+        const project = await Project.findOne({ where: { join_code: code } });
+        if (!project) {
+            console.warn(`[POST /join-code] Invalid code: ${code}`);
+            return res.status(404).json({ error: "Cod invalid!" });
+        }
 
         const existing = await ProjectMember.findOne({ where: { project_id: project.id, user_id: userId } });
-        if (existing) return res.status(400).json({ error: "Ești deja membru." });
+        if (existing) {
+            console.warn(`[POST /join-code] User ${userId} already member of project ${project.id}`);
+            return res.status(400).json({ error: "Ești deja membru." });
+        }
 
         // Rol implicit: 'TST', status: 'active' pentru a fi vizibil imediat
+        console.log(`[POST /join-code] Adding user ${userId} to project ${project.id} as TST`);
         await ProjectMember.create({ project_id: project.id, user_id: userId, role: 'TST', status: 'active' });
 
         res.json({ message: "Te-ai alăturat echipei ca Tester!", project });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) {
+        console.error(`[POST /join-code] ERROR:`, err);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // JOIN CA TESTER (PUBLIC)
 router.post('/:id/join', async (req, res) => {
     try {
+        console.log(`[POST /:id/join] Request received for Project ID: ${req.params.id}`);
+        console.log(`[POST /:id/join] Request Body:`, req.body);
+
         const { userId } = req.body;
-        const existing = await ProjectMember.findOne({ where: { project_id: req.params.id, user_id: userId } });
-        if (existing) return res.status(400).json({ error: "Ești deja membru." });
+        if (!userId) {
+            console.error("[POST /:id/join] Missing userId in body");
+            return res.status(400).json({ error: "Missing userId" });
+        }
+
+        const projectId = req.params.id;
+
+        const existing = await ProjectMember.findOne({ where: { project_id: projectId, user_id: userId } });
+        if (existing) {
+            console.warn(`[POST /:id/join] User ${userId} already member of project ${projectId}`);
+            return res.status(400).json({ error: "Ești deja membru." });
+        }
 
         // Status explicit: 'active'
-        await ProjectMember.create({ project_id: req.params.id, user_id: userId, role: 'TST', status: 'active' });
+        console.log(`[POST /:id/join] Creating ProjectMember: project_id=${projectId}, user_id=${userId}, role='TST'`);
+        await ProjectMember.create({ project_id: projectId, user_id: userId, role: 'TST', status: 'active' });
+
+        console.log(`[POST /:id/join] Success`);
         res.json({ message: "Succes! Ești Tester." });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) {
+        console.error(`[POST /:id/join] ERROR:`, err);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // INVITA MEMBRU (Doar MP)
