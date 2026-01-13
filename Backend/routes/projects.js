@@ -121,7 +121,14 @@ router.put('/:id', async (req, res) => {
 // CREARE PROIECT
 router.post('/', async (req, res) => {
     try {
+        console.log("[POST /] Creating project. Body:", req.body);
         const { name, repository, owner_id, description, technologies, members } = req.body;
+
+        if (!owner_id) {
+            console.error("[POST /] Missing owner_id!");
+            return res.status(400).json({ error: "Missing owner_id" });
+        }
+
         const code = generateCode();
 
         const project = await Project.create({
@@ -132,8 +139,10 @@ router.post('/', async (req, res) => {
             description,
             technologies
         });
+        console.log(`[POST /] Project created with ID: ${project.id}`);
 
         // Cel care creează este automat Manager (MP) și ACTIVE
+        console.log(`[POST /] Adding owner ${owner_id} as MP (active)`);
         await ProjectMember.create({ project_id: project.id, user_id: owner_id, role: 'MP', status: 'active' });
 
         // Adaugam si membrii invitati (daca exista)
@@ -151,7 +160,10 @@ router.post('/', async (req, res) => {
         }
 
         res.json({ message: "Proiect creat!", project });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) {
+        console.error("[POST /] Error creating project:", err);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // JOIN CU COD
