@@ -9,20 +9,12 @@ const generateCode = () => Math.random().toString(36).substring(2, 8).toUpperCas
 // LISTARE PROIECTE (DOAR CELE ACTIVE)
 router.get('/', async (req, res) => {
     try {
-        // Presupunem ca avem userId in query sau header (in mod normal ar fi din token)
-        // Dar aici luam toate proiectele si filtram unde userul e activ?
-        // Momentan "Login" e pe frontend doar simulat, dar userul curent il stim in frontend.
-        // Totusi, endpoint-ul asta returna TOATE proiectele.
-        // Daca vrem sa filtram per user, ne trebuie user ID.
-        // Voi modifica sa accepte ?userId=... sau sa returneze tot (dar cu status).
-        // Cerinta: "Userul nu vede proiectul în lista principală până nu acceptă."
 
-        const { userId } = req.query; // Astept userId din frontend
+        const { userId } = req.query; // Aștept userId din frontend
 
         let whereClause = {};
         if (userId) {
-            // Daca mi se da userId, caut doar proiectele unde acest user e membru 'active'
-            // Asta e mai complicat cu Sequelize simplu pe include, dar incercam:
+            // Dacă primesc userId, caut doar proiectele unde acest user este membru 'active'
             const projects = await Project.findAll({
                 include: [
                     {
@@ -36,7 +28,7 @@ router.get('/', async (req, res) => {
             return res.json(projects);
         }
 
-        // Fallback: Returnam tot (pentru admin/debug) sau gol
+        // Fallback: Returnăm tot (pentru admin/debug) sau listă goală
         const projects = await Project.findAll({
             include: [
                 { model: ProjectMember, include: [User] },
@@ -58,15 +50,12 @@ router.get('/invitations', async (req, res) => {
                 {
                     model: ProjectMember,
                     where: { user_id: userId, status: 'pending' }, // DOAR PENDING
-                    include: [User] // Aici ar trebui sa vedem si cine a invitat?
-                    // ProjectMember nu retine cine a invitat, dar stim cine e ownerul proiectului
+                    include: [User]
+                    // ProjectMember nu reține cine a invitat, dar știm cine este ownerul proiectului
                 }
             ]
         });
 
-        // Vrem sa stim si cine e ownerul ca sa afisam "Invited by X"
-        // Ownerul e in Project.owner_id
-        // Putem face un map sa aducem si numele ownerului
         const result = await Promise.all(pendingProjects.map(async (p) => {
             const owner = await User.findByPk(p.owner_id);
             return {
@@ -108,7 +97,7 @@ router.put('/:id', async (req, res) => {
     try {
         const { userId, name, repository, description, technologies } = req.body;
 
-        // 1. Verificam permisiuni
+        // 1. Verificăm permisiuni
         const member = await ProjectMember.findOne({
             where: { project_id: req.params.id, user_id: userId, role: 'MP' }
         });
@@ -117,7 +106,7 @@ router.put('/:id', async (req, res) => {
             return res.status(403).json({ error: "Nu ai voie sa modifici proiectul (Doar Managerii pot)." });
         }
 
-        // 2. Actualizam
+        // 2. Actualizăm
         const project = await Project.findByPk(req.params.id);
         if (!project) return res.status(404).json({ error: "Proiect inexistent" });
 
@@ -144,7 +133,7 @@ router.post('/', async (req, res) => {
             technologies
         });
 
-        // Cel care crează este automat Manager (MP) și ACTIVE
+        // Cel care creează este automat Manager (MP) și ACTIVE
         await ProjectMember.create({ project_id: project.id, user_id: owner_id, role: 'MP', status: 'active' });
 
         // Adaugam si membrii invitati (daca exista)
@@ -152,9 +141,9 @@ router.post('/', async (req, res) => {
             for (const email of members) {
                 const invitedUser = await User.findOne({ where: { email } });
                 if (invitedUser) {
-                    // Prevent adding owner again or duplicates (simple check)
+                    // Prevenim adăugarea owner-ului din nou sau duplicate
                     if (invitedUser.id !== owner_id) {
-                        // Invitam userii cu status PENDING
+                        // Invităm userii cu status PENDING
                         await ProjectMember.create({ project_id: project.id, user_id: invitedUser.id, role: 'MP', status: 'pending' });
                     }
                 }
@@ -176,9 +165,10 @@ router.post('/join-code', async (req, res) => {
         const existing = await ProjectMember.findOne({ where: { project_id: project.id, user_id: userId } });
         if (existing) return res.status(400).json({ error: "Ești deja membru." });
 
-        await ProjectMember.create({ project_id: project.id, user_id: userId, role: 'MP' });
+        // Rol implicit: 'TST', status: 'active' pentru a fi vizibil imediat
+        await ProjectMember.create({ project_id: project.id, user_id: userId, role: 'TST', status: 'active' });
 
-        res.json({ message: "Te-ai alăturat echipei!", project });
+        res.json({ message: "Te-ai alăturat echipei ca Tester!", project });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -189,7 +179,8 @@ router.post('/:id/join', async (req, res) => {
         const existing = await ProjectMember.findOne({ where: { project_id: req.params.id, user_id: userId } });
         if (existing) return res.status(400).json({ error: "Ești deja membru." });
 
-        await ProjectMember.create({ project_id: req.params.id, user_id: userId, role: 'TST' });
+        // Status explicit: 'active'
+        await ProjectMember.create({ project_id: req.params.id, user_id: userId, role: 'TST', status: 'active' });
         res.json({ message: "Succes! Ești Tester." });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -199,23 +190,23 @@ router.post('/:id/invite', async (req, res) => {
     try {
         const { email, userId } = req.body;
 
-        // 1. Check Permission
+        // 1. Verificare Permisiuni
         const manager = await ProjectMember.findOne({
             where: { project_id: req.params.id, user_id: userId, role: 'MP' }
         });
         if (!manager) return res.status(403).json({ error: "Nu ai drepturi." });
 
-        // 2. Find User
+        // 2. Căutare Utilizator
         const userToAdd = await User.findOne({ where: { email } });
         if (!userToAdd) return res.status(404).json({ error: "Utilizatorul nu există." });
 
-        // 3. Check Existing
+        // 3. Verificare Existență
         const existing = await ProjectMember.findOne({
             where: { project_id: req.params.id, user_id: userToAdd.id }
         });
         if (existing) return res.status(400).json({ error: "Este deja membru." });
 
-        // 4. Add as MP (Collaborator) - PENDING
+        // 4. Adăugare ca MP (Colaborator) - PENDING
         await ProjectMember.create({
             project_id: req.params.id,
             user_id: userToAdd.id,
@@ -254,11 +245,8 @@ router.post('/:id/decline-invite', async (req, res) => {
 
         if (!member) return res.status(404).json({ error: "Invitație inexistentă." });
 
-        // Stergem intrarea sau setam rejected
-        await member.destroy(); // Stergem direct ca sa nu ramana gunoi, sau update status='rejected'
-        // Cerinta: "Decline: Șterge intrarea din baza de date (sau schimbă status în 'rejected')"
-        // Aleg stergerea pentru curatenie, sau rejected daca vrem istoric. 
-        // Voi sterge pentru simplitate.
+        // Ștergem intrarea 
+        await member.destroy();
 
         res.json({ message: "Ai refuzat invitația." });
     } catch (err) { res.status(500).json({ error: err.message }); }

@@ -11,20 +11,20 @@ function Dashboard({ user }) {
 
     // --- STATE ---
     const [projects, setProjects] = useState([]);
-    const [invitations, setInvitations] = useState([]); // NEW: Pending Invites Helper
+    const [invitations, setInvitations] = useState([]); // Invitații în așteptare
 
-    // Create Project Form
+    // Formular Creare Proiect
     const [newProjName, setNewProjName] = useState('');
     const [newProjRepo, setNewProjRepo] = useState('');
     const [newProjDesc, setNewProjDesc] = useState('');
     const [newProjTech, setNewProjTech] = useState('');
     const [isCreating, setIsCreating] = useState(false);
 
-    // Create Project - Members Logic
-    const [projectMembers, setProjectMembers] = useState([]); // Array of emails
+    // Creare Proiect - Logică Membri
+    const [projectMembers, setProjectMembers] = useState([]); // Lista email-uri
     const [showInviteModal, setShowInviteModal] = useState(false);
 
-    // Join Form
+    // Formular Alăturare
     const [joinCode, setJoinCode] = useState('');
 
     useEffect(() => {
@@ -34,10 +34,10 @@ function Dashboard({ user }) {
         }
     }, [user]);
 
-    //API CALLS 
+    // APELURI API 
     const loadProjects = async () => {
         try {
-            // Updated to fetch only active projects for this user
+            // Actualizat pentru a prelua proiectele active
             const res = await fetch(`${API_BASE_URL}/api/projects`);
             const data = await res.json();
             console.log("Projects fetched from API:", data);
@@ -61,7 +61,7 @@ function Dashboard({ user }) {
             });
             loadProjects();
             loadInvitations();
-            // Navbar shares state via polling, but this updates UI immediately
+            // Navbar partajează starea, dar asta actualizează UI-ul imediat
         } catch (e) { console.error(e); }
     };
 
@@ -88,7 +88,7 @@ function Dashboard({ user }) {
                 owner_id: user.id,
                 description: newProjDesc,
                 technologies: newProjTech,
-                members: projectMembers // Send invited members
+                members: projectMembers // Trimite membrii invitați
             })
         });
         setNewProjName(''); setNewProjRepo(''); setNewProjDesc(''); setNewProjTech(''); setProjectMembers([]);
@@ -133,7 +133,9 @@ function Dashboard({ user }) {
         const updated = await (await fetch(`${API_BASE_URL}/api/projects`)).json();
         setProjects(updated);
 
-        // Navigate to project immediately
+
+
+        // Navigare imediată la proiect
         navigate(`/project/${project.id}`);
     };
 
@@ -143,15 +145,15 @@ function Dashboard({ user }) {
     );
 
     const managedProjects = searchResults.filter(p =>
-        p.ProjectMembers.some(m => m.user_id === user.id && m.role === 'MP')
+        p.ProjectMembers.some(m => m.user_id == user.id && m.role === 'MP' && m.status === 'active')
     );
 
     const contributionProjects = searchResults.filter(p =>
-        p.ProjectMembers.some(m => m.user_id === user.id && m.role === 'TST')
+        p.ProjectMembers.some(m => m.user_id == user.id && m.role === 'TST' && m.status === 'active')
     );
 
     const feedProjects = searchResults.filter(p =>
-        !p.ProjectMembers.some(m => m.user_id === user.id)
+        !p.ProjectMembers.some(m => m.user_id == user.id)
     );
 
     return (
@@ -184,7 +186,7 @@ function Dashboard({ user }) {
                             <input className="input-field" placeholder="Technologies (React, Node...)" value={newProjTech} onChange={e => setNewProjTech(e.target.value)} />
                             <input className="input-field" placeholder="Repository URL" value={newProjRepo} onChange={e => setNewProjRepo(e.target.value)} />
 
-                            {/* MEMBERS SECTION IN CREATE FORM */}
+                            {/* SECȚIUNE MEMBRI ÎN FORMULARUL DE CREARE */}
                             <div style={{ marginTop: '10px' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                                     <label style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Membri Echipă ({projectMembers.length})</label>
@@ -218,7 +220,7 @@ function Dashboard({ user }) {
 
             {/* SECTIONS */}
 
-            {/* 0. PENDING INVITATIONS (High Visibility) */}
+            {/* 0. INVITAȚII ÎN AȘTEPTARE (Vizibilitate Ridicată) */}
             {invitations.length > 0 && (
                 <div style={{ marginBottom: '2rem' }}>
                     <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary)' }}>

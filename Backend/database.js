@@ -1,7 +1,5 @@
 const { Sequelize, DataTypes, Op } = require('sequelize');
 
-// --- MODIFICARE 1: Conexiunea la Neon (PostgreSQL) ---
-
 // 1. Încărcăm variabilele de mediu
 // Dacă fișierul se numește fix ".env", nu e nevoie de { path: ... }
 require('dotenv').config(); 
@@ -9,7 +7,6 @@ require('dotenv').config();
 // 2. DEFINIM connectionString (Aici era eroarea, lipsea linia asta!)
 const connectionString = process.env.DATABASE_URL;
 
-// Opțional: Verificăm să nu fie gol, ca să nu ne chinuim cu erori ciudate
 if (!connectionString) {
     console.error("EROARE: Nu am găsit DATABASE_URL! Verifică fișierul .env sau setările din Render.");
 }
@@ -26,7 +23,6 @@ const sequelize = new Sequelize(connectionString, {
 });
 
 
-// --- DEFINIREA MODELELOR (Ramane la fel) ---
 
 // Tabela pentru useri
 const User = sequelize.define('User', {
@@ -95,7 +91,6 @@ Comment.belongsTo(User, { foreignKey: 'user_id' });
 
 async function initDB() {
     try {
-        // --- MODIFICARE 2: Am scos PRAGMA (nu merge pe Postgres) ---
         
         // Testam conexiunea intai
         await sequelize.authenticate();

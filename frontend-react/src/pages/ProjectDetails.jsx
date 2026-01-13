@@ -17,16 +17,16 @@ function ProjectDetails({ user }) {
     const [repoInfo, setRepoInfo] = useState(null);
     const [activeTab, setActiveTab] = useState('active'); // active, resolved, closed
     const [showModal, setShowModal] = useState(false);
-    const [showEditModal, setShowEditModal] = useState(false); // Edit Modal State
-    const [showResolveModal, setShowResolveModal] = useState(false); // Resolve Modal State
-    const [bugToResolve, setBugToResolve] = useState(null); // Bug id to resolve
+    const [showEditModal, setShowEditModal] = useState(false); // Modal Editare
+    const [showResolveModal, setShowResolveModal] = useState(false); // Modal Rezolvare
+    const [bugToResolve, setBugToResolve] = useState(null); // ID bug de rezolvat
 
     const [loading, setLoading] = useState(true);
-    const [showTeam, setShowTeam] = useState(false); // Toggle Team View
+    const [showTeam, setShowTeam] = useState(false); // Comutare Vizualizare Echipă
     const [selectedBug, setSelectedBug] = useState(null); // Bug-ul selectat pentru modal
-    const [expandedBug, setExpandedBug] = useState(null); // Comments toggler
+    const [expandedBug, setExpandedBug] = useState(null); // Comutator Comentarii
 
-    // NEW: Collaborator Modal State
+    // NOU: Stare Modal Colaborator
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [isAddingCollab, setIsAddingCollab] = useState(false);
 
@@ -80,12 +80,12 @@ function ProjectDetails({ user }) {
             const res = await fetch(`${API_BASE_URL}/api/projects/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...updatedData, userId: user.id }) // Send userId for permission check
+                body: JSON.stringify({ ...updatedData, userId: user.id }) // Trimitem userId pentru verificarea permisiunilor
             });
 
             if (res.ok) {
                 setShowEditModal(false);
-                loadData(); // Reload data to show updates
+                loadData(); // Reîncărcăm datele pentru a afișa schimbările
             } else {
                 const err = await res.json();
                 alert(err.error || "Eroare la actualizare!");
@@ -129,7 +129,7 @@ function ProjectDetails({ user }) {
         setShowResolveModal(false);
         setBugToResolve(null);
 
-        // Update local state if needed
+        // Actualizare stare locală dacă este necesar
         if (selectedBug && selectedBug.id === bugToResolve) {
             setSelectedBug(prev => ({ ...prev, status: 'Resolved', fix_link: commitLink }));
         }
@@ -170,7 +170,7 @@ function ProjectDetails({ user }) {
         loadData();
     };
 
-    // NEW: Add Collaborator Logic (Via Modal)
+    // NOU: Logică Adăugare Colaborator (Prin Modal)
     const handleAddCollaborator = async (email) => {
         try {
             setIsAddingCollab(true);
@@ -184,7 +184,7 @@ function ProjectDetails({ user }) {
             if (res.ok) {
                 alert("Utilizator adăugat cu succes!");
                 setShowInviteModal(false);
-                loadData(); // Refresh team list
+                loadData(); // Reîmprospătare listă echipă
             } else {
                 alert(data.error || "Eroare la adăugare!");
             }
@@ -196,7 +196,7 @@ function ProjectDetails({ user }) {
         }
     };
 
-    // Explicit Edit Handler for Debugging
+    // Handler Explicit Editare pentru Debugging
     const handleEditClick = () => {
         console.log("Deschidere modal editare...");
         setShowEditModal(true);
@@ -231,25 +231,33 @@ function ProjectDetails({ user }) {
             </button>
 
             <div className="project-header">
-                <div style={{ flex: 1 }}> {/* Left Side */}
+                <div style={{ flex: 1 }}> {/* Partea Stângă */}
                     <h1 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
                         {project.name}
                     </h1>
                     <div style={{ marginTop: '15px' }}>
-                        {/* DESCRIPTION BOX */}
+                        {/* Cutie Descriere */}
                         <div style={{ background: 'rgba(255,255,255,0.03)', padding: '15px', borderRadius: '8px', borderLeft: '3px solid var(--primary)', marginBottom: '15px' }}>
                             <p style={{ margin: 0, lineHeight: '1.5', color: 'var(--text-muted)' }}>{project.description || "Fără descriere."}</p>
                         </div>
 
-                        {/* GIT HUB ACTION BUTTON */}
-                        {repoInfo && (
+                        {/* BUTON COD SURSĂ (GITHUB) */}
+                        {project.repository && (
                             <a
-                                href={project.repository.startsWith('http') ? project.repository : `https://${project.repository}`}
+                                href={(() => {
+                                    const repo = project.repository;
+                                    if (repo.startsWith('http')) return repo;
+                                    if (repo.includes('github.com')) return `https://${repo}`;
+                                    // Dacă e formatul "user/repo", presupunem GitHub
+                                    if (repo.split('/').length === 2 && !repo.includes('.')) return `https://github.com/${repo}`;
+                                    return `https://${repo}`;
+                                })()}
                                 target="_blank"
+                                rel="noopener noreferrer"
                                 className="btn-secondary"
                                 style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', textDecoration: 'none', color: 'white', border: '1px solid var(--glass-border)' }}
                             >
-                                <Github size={18} /> Vezi Codul pe GitHub
+                                <Github size={18} /> Vezi Codul Sursă
                             </a>
                         )}
                     </div>
@@ -262,9 +270,9 @@ function ProjectDetails({ user }) {
                     )}
                 </div>
 
-                <div className="project-actions"> {/* Right Side */}
+                <div className="project-actions"> {/* Partea Dreaptă */}
 
-                    {/* BUTTON GROUP - CLEARLY SEPARATED */}
+                    {/* GRUP BUTOANE - SEPARATE CLAR */}
                     <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
                         {userRole === 'MP' && (
                             <button
@@ -306,7 +314,7 @@ function ProjectDetails({ user }) {
                 </div>
             </div>
 
-            {/* TEAM SECTION (NEW) */}
+            {/* SECȚIUNE ECHIPĂ (NOU) */}
             {showTeam && (
                 <div className="glass-panel fade-in" style={{ marginBottom: '20px', padding: '20px' }}>
                     <h3 style={{ marginTop: 0, display: 'flex', alignItems: 'center', gap: '10px' }}><Users size={20} /> Echipa Proiectului</h3>
@@ -338,9 +346,9 @@ function ProjectDetails({ user }) {
                 </div>
             )}
 
-            {/* Bugs Section */}
+            {/* Secțiune Probleme */}
             <div className="glass-panel" style={{ minHeight: '60vh' }}>
-                {/* Tabs */}
+                {/* Tab-uri */}
                 <div style={{ display: 'flex', borderBottom: '1px solid var(--glass-border)' }}>
                     <button
                         className={`tab-btn ${activeTab === 'active' ? 'active' : ''}`}
@@ -397,7 +405,7 @@ function ProjectDetails({ user }) {
                                                     <span>•</span>
                                                     <span>Creat de: {b.Reporter?.name || `ID#${b.reporter_id}`}</span>
 
-                                                    {/* ASSIGNMENT INFO */}
+                                                    {/* INFORMAȚII ALOCARE */}
                                                     {b.assigned_to ? (
                                                         <span style={{ color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                                             <UserPlus size={12} /> Alocat lui: {project.ProjectMembers.find(m => m.user_id === b.assigned_to)?.User.name || 'Unknown'}
@@ -413,10 +421,10 @@ function ProjectDetails({ user }) {
                                             </div>
                                         </div>
 
-                                        {/* Actions */}
+                                        {/* Acțiuni */}
                                         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
 
-                                            {/* Button View Details */}
+                                            {/* Buton Vezi Detalii */}
                                             <button
                                                 onClick={() => setSelectedBug(b)}
                                                 style={{ background: 'transparent', border: '1px solid var(--glass-border)', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', borderRadius: '4px', padding: '4px 8px', fontSize: '0.8rem' }}
@@ -425,7 +433,7 @@ function ProjectDetails({ user }) {
                                                 <Maximize2 size={16} /> Detalii
                                             </button>
 
-                                            {/* ASSIGN BUTTON (For MPs) */}
+                                            {/* BUTON PRELUARE (Pentru Manageri) */}
                                             {userRole === 'MP' && activeTab === 'active' && !b.assigned_to && (
                                                 <button
                                                     onClick={() => handleAssign(b.id, user.id)}
@@ -435,7 +443,7 @@ function ProjectDetails({ user }) {
                                                 </button>
                                             )}
 
-                                            {/* Button Comments */}
+                                            {/* Buton Discuție */}
                                             <button
                                                 onClick={() => toggleComments(b.id)}
                                                 style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}
@@ -456,7 +464,7 @@ function ProjectDetails({ user }) {
                                                 </button>
                                             )}
 
-                                            {/* TESTER ACTIONS (On Resolved) */}
+                                            {/* ACȚIUNI TESTER (La Rezolvate) */}
                                             {activeTab === 'resolved' && (
                                                 <>
                                                     <button
@@ -478,7 +486,7 @@ function ProjectDetails({ user }) {
                                         </div>
                                     </div>
 
-                                    {/* Expanded Comments Section */}
+                                    {/* Secțiune Comentarii Extinsă */}
                                     {expandedBug === b.id && (
                                         <div style={{ padding: '0 15px 15px 15px' }}>
                                             <CommentsSection bugId={b.id} user={user} />

@@ -16,7 +16,7 @@ function AddBugModal({ onClose, onSubmit }) {
         if (e.target.files && e.target.files[0]) {
             setFile(e.target.files[0]);
         }
-    };
+    }; 
 
     const handleSubmit = async () => {
         if (!title.trim()) return alert("Te rugăm să pui un titlu!");

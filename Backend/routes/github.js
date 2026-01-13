@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-// Dat fiind că e un proxy simplu, scriem logica direct aici (sau am putea face un controller)
+// Dat fiind că e un proxy simplu, scriem logica direct aici 
 router.get('/repo-info', async (req, res) => {
     const { owner, repo } = req.query;
     if (!owner || !repo) return res.status(400).json({ error: "Proprietarul și Repozitoriul sunt obligatorii" });
