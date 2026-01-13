@@ -45,9 +45,13 @@ function ProjectDetails({ user }) {
             setProject(data);
 
             if (data.repository && data.repository.includes('github.com')) {
-                const parts = data.repository.split('github.com/')[1].split('/');
-                if (parts.length >= 2) {
-                    fetchRepoInfo(parts[0], parts[1]);
+                // Safeguard: ensure 'github.com/' exists or handle cases where it might just be 'github.com'
+                const splitUrl = data.repository.split('github.com/');
+                if (splitUrl[1]) {
+                    const parts = splitUrl[1].split('/');
+                    if (parts.length >= 2) {
+                        fetchRepoInfo(parts[0], parts[1]);
+                    }
                 }
             }
         } catch (e) {
